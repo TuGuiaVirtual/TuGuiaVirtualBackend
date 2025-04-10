@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const { PrismaClient } = require('@prisma/client');
+const { sendResetEmail } = require('../utils/mailer');
 
 const prisma = new PrismaClient();
 
@@ -59,16 +60,133 @@ exports.login = async (req, res) => {
       return res.status(401).json({ message: 'Credenciales inválidas' });
     }
 
-    const token = jwt.sign(
+    const accessToken = jwt.sign(
       { id: user.id, email: user.email },
       process.env.JWT_SECRET,
-      { expiresIn: '1h' }
+      { expiresIn: '7d' }
     );
 
-    res.json({ message: 'Login exitoso', token });
+    const refreshToken = jwt.sign(
+      { id: user.id },
+      process.env.JWT_REFRESH_SECRET,
+      { expiresIn: '7d' }
+    );
+
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: false, // cámbialo a true en producción (HTTPS)
+      path: '/auth/refreshToken',
+      sameSite: 'Strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000
+    });
+
+    res.json({ message: 'Login exitoso', accessToken });
 
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Error interno del servidor' });
   }
 };
+
+
+exports.forgotPassword = async (req, res) => {
+  const { email } = req.body;
+
+  if (!email) {
+    return res.status(400).json({ message: 'Email requerido' });
+  }
+
+  try {
+    const user = await prisma.user.findUnique({ where: { email } });
+
+    if (!user) {
+      return res.status(404).json({ message: 'No existe un usuario con ese email' });
+    }
+
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+
+    const expiry = new Date(Date.now() + 10 * 60 * 1000);
+
+    await prisma.user.update({
+      where: { email },
+      data: {
+        resetCode: code,
+        resetCodeExpiry: expiry
+      }
+    });
+
+    await sendResetEmail(email, code);
+
+    res.json({ message: 'Código de recuperación enviado al correo' });
+
+  } catch (error) {
+    console.error('Error al enviar código:', error);
+    res.status(500).json({ message: 'Error al enviar el correo' });
+  }
+};
+
+exports.resetPassword = async (req, res) => {
+  const { email, code, newPassword } = req.body;
+
+  if (!email || !code || !newPassword) {
+    return res.status(400).json({ message: 'Todos los campos son obligatorios' });
+  }
+
+  try {
+    const user = await prisma.user.findUnique({ where: { email } });
+
+    if (!user) {
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
+
+    if (user.resetCode !== code) {
+      return res.status(401).json({ message: 'Código inválido' });
+    }
+
+    if (user.resetCodeExpiry < new Date()) {
+      return res.status(410).json({ message: 'El código ha expirado' });
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    await prisma.user.update({
+      where: { email },
+      data: {
+        password: hashedPassword,
+        resetCode: null,
+        resetCodeExpiry: null
+      }
+    });
+
+    res.json({ message: 'Contraseña actualizada correctamente' });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Error al actualizar la contraseña' });
+  }
+};
+
+exports.refreshToken = (req, res) => {
+  const token = req.cookies.refreshToken;
+
+  if (!token) {
+    return res.status(401).json({ message: 'No hay refresh token' });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_REFRESH_SECRET);
+
+    const newAccessToken = jwt.sign(
+      { id: decoded.id },
+      process.env.JWT_SECRET,
+      { expiresIn: '1h' }
+    );
+
+    res.json({ accessToken: newAccessToken });
+
+  } catch (error) {
+    console.error('Error al verificar el refresh token:', error);
+    return res.status(403).json({ message: 'Token inválido o expirado' });
+  }
+};
+

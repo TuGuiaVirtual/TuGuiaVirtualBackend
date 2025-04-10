@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const cookieParser = require('cookie-parser');
 const uploadRoutes = require('./routes/upload.routes');
 require('dotenv').config();
 
@@ -7,8 +8,12 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Middlewares
-app.use(cors());
+app.use(cors({
+  origin: 'http://localhost:8100', // cambiar puerto en producción
+  credentials: true
+}));
 app.use(express.json());
+app.use(cookieParser());
 
 // Rutas
 const authRoutes = require('./routes/auth.routes');

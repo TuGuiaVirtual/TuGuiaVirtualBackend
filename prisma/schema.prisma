@@ -18,7 +18,19 @@ model User {
   email     String   @unique
   password  String
   name      String
+  phone  String?
   profileImageUrl String?
   imagePublicId   String?
+  resetCode       String?
+  resetCodeExpiry DateTime?
   createdAt DateTime @default(now())
+
+  touristPoints         Boolean @default(false)
+  gastronomicAlerts     Boolean @default(false)
+  experienceNotifications Boolean @default(false)
+  guideNews             Boolean @default(true)
+  emailNotifications    Boolean @default(true)
+
+  allowLocation   Boolean  @default(true)
+  autoPlayAudio   Boolean  @default(true)
 }

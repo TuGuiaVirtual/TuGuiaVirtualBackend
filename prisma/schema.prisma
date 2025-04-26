@@ -14,23 +14,159 @@ datasource db {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
-  password  String
-  name      String
-  phone  String?
-  profileImageUrl String?
-  imagePublicId   String?
-  resetCode       String?
-  resetCodeExpiry DateTime?
-  createdAt DateTime @default(now())
+  id        Int           @id @default(autoincrement())
+  email                   String   @unique
+  password                String
+  name                    String
+  phone                   String?
+  profileImageUrl         String?
+  imagePublicId           String?
+  resetCode               String?
+  resetCodeExpiry         DateTime?
+  createdAt DateTime      @default(now())
 
-  touristPoints         Boolean @default(false)
-  gastronomicAlerts     Boolean @default(false)
+  touristPoints           Boolean @default(false)
+  gastronomicAlerts       Boolean @default(false)
   experienceNotifications Boolean @default(false)
-  guideNews             Boolean @default(true)
-  emailNotifications    Boolean @default(true)
+  guideNews               Boolean @default(true)
+  emailNotifications      Boolean @default(true)
 
-  allowLocation   Boolean  @default(true)
-  autoPlayAudio   Boolean  @default(true)
+  allowLocation           Boolean  @default(true)
+  autoPlayAudio           Boolean  @default(true)
 }
+
+model City {
+  id                  Int                @id @default(autoincrement())
+  imageUrl            String
+  link                String?
+  views               Int                @default(0)
+  latitude            Float
+  longitude           Float
+  googleMapsUrl       String?
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+
+  places              Place[] 
+  restaurants         Restaurant[] 
+  experiences         Experience[] 
+
+  translations        CityTranslation[]
+}
+
+model CityTranslation {
+  id            Int     @id @default(autoincrement())
+  cityId        Int
+  city          City    @relation(fields: [cityId], references: [id], onDelete: Cascade)
+
+  language      String
+  audioUrl      String?
+  name          String
+  infoCity      String?
+  description   String
+  buttonText    String
+
+  @@unique([cityId, language])
+}
+
+model Experience {
+  id              Int                   @id @default(autoincrement())
+  cityId          Int
+  city            City                  @relation(fields: [cityId], references: [id], onDelete: Cascade)
+
+  imageUrl        String
+  link            String?
+  views           Int                   @default(0)
+  latitude        Float?
+  longitude       Float?
+  googleMapsUrl   String?
+  price           String?
+
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+
+  translations    ExperienceTranslation[]
+}
+
+model ExperienceTranslation {
+  id            Int       @id @default(autoincrement())
+  experienceId  Int
+  experience    Experience @relation(fields: [experienceId], references: [id], onDelete: Cascade)
+
+  language      String
+  audioUrl      String?
+  name          String
+  description   String
+  firstInfo     String?
+  secondInfo    String?
+  thirdInfo     String?
+  info          String?
+
+  @@unique([experienceId, language])
+}
+
+model Restaurant {
+  id              Int                 @id @default(autoincrement())
+  cityId          Int
+  city            City                @relation(fields: [cityId], references: [id], onDelete: Cascade)
+
+  imageUrl        String
+  link            String?
+  views           Int                 @default(0)
+  latitude        Float?
+  longitude       Float?
+  googleMapsUrl   String?
+
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+
+  translations    RestaurantTranslation[]
+}
+
+model RestaurantTranslation {
+  id            Int        @id @default(autoincrement())
+  restaurantId  Int
+  restaurant    Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  language      String
+  name          String
+  description   String
+  info          String
+  firstInfo     String
+  secondInfo    String
+  thirdInfo     String
+  audioUrl      String?
+
+  @@unique([restaurantId, language])
+}
+
+model Place {
+  id              Int                 @id @default(autoincrement())
+  cityId          Int
+  city            City                @relation(fields: [cityId], references: [id], onDelete: Cascade)
+
+  imageUrl        String
+  locationUrl     String
+  views           Int                 @default(0)
+
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+
+  translations    PlaceTranslation[]
+}
+
+model PlaceTranslation {
+  id              Int       @id @default(autoincrement())
+  placeId         Int
+  place           Place     @relation(fields: [placeId], references: [id], onDelete: Cascade)
+
+  language        String
+  name            String
+  description     String
+  audioUrl        String
+  reading         String
+  vrUrl           String
+  videoUrl        String
+
+  @@unique([placeId, language])
+}
+

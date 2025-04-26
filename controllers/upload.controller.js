@@ -8,12 +8,10 @@ exports.uploadImage = async (req, res) => {
       return res.status(400).json({ message: 'No se subió ningún archivo' });
     }
 
-    // 🧠 1. Buscar al usuario logeado
     const user = await prisma.user.findUnique({
       where: { id: req.user.id }
     });
 
-    // 📤 2. Subir la nueva imagen
     const bufferToStream = (buffer) => {
       const { Readable } = require('stream');
       const stream = new Readable();
@@ -30,7 +28,6 @@ exports.uploadImage = async (req, res) => {
           return res.status(500).json({ message: 'Error al subir a Cloudinary', error });
         }
 
-        // 🧹 3. Si hay imagen anterior, eliminarla
         if (user.imagePublicId) {
           cloudinary.uploader.destroy(user.imagePublicId, (error, result) => {
             if (error) {
@@ -42,7 +39,6 @@ exports.uploadImage = async (req, res) => {
         }        
 
 
-        // 💾 4. Guardar la nueva URL en la BBDD
         await prisma.user.update({
           where: { id: req.user.id },
           data: {

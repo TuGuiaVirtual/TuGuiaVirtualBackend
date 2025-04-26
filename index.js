@@ -1,7 +1,6 @@
 const express = require('express');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
-const uploadRoutes = require('./routes/upload.routes');
 require('dotenv').config();
 
 const app = express();
@@ -18,10 +17,19 @@ app.use(cookieParser());
 // Rutas
 const authRoutes = require('./routes/auth.routes');
 const userRoutes = require('./routes/user.routes');
+const cityRoutes = require('./routes/city.routes');
+const uploadRoutes = require('./routes/upload.routes');
+const experienceRoutes = require('./routes/experience.routes');
+const gastronomyRoutes = require('./routes/gastronomy.routes');
+const placeRoutes = require('./routes/place.routes')
 
 app.use('/auth', authRoutes);
 app.use('/user', userRoutes);
 app.use('/upload', uploadRoutes);
+app.use('/cities', cityRoutes);
+app.use('/experiences', experienceRoutes);
+app.use('/gastronomy', gastronomyRoutes);
+app.use('/place', placeRoutes);
 
 // Ruta base
 app.get('/', (req, res) => {

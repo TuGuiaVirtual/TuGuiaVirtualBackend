@@ -116,7 +116,7 @@ exports.getTopPlaceByCity = async (req, res) => {
 
 exports.getPlacesByIds = async (req, res) => {
   const { placeIds, lang } = req.body;
-
+  
   if (!Array.isArray(placeIds) || placeIds.length === 0) {
     return res.status(400).json({ message: 'La lista de IDs es inválida o está vacía' });
   }

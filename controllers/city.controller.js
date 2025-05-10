@@ -131,7 +131,7 @@ exports.getImageCity = async (req, res) => {
               equals: name,
               mode: 'insensitive',
             },
-            language: lang,
+            language: 'en',
           }
         }
       },

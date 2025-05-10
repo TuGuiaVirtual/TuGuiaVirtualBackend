@@ -8,7 +8,7 @@ const PORT = process.env.PORT || 5000;
 
 // Middlewares
 app.use(cors({
-  origin: 'http://localhost:8100', // cambiar puerto en producción
+  origin: 'http://localhost:8100',
   credentials: true
 }));
 app.use(express.json());
@@ -23,6 +23,7 @@ const experienceRoutes = require('./routes/experience.routes');
 const gastronomyRoutes = require('./routes/gastronomy.routes');
 const placeRoutes = require('./routes/place.routes');
 const favoriteRoutes = require('./routes/favorite.routes');
+const locationRoutes = require('./routes/location.routes');
 
 app.use('/auth', authRoutes);
 app.use('/user', userRoutes);
@@ -32,6 +33,7 @@ app.use('/experiences', experienceRoutes);
 app.use('/gastronomy', gastronomyRoutes);
 app.use('/place', placeRoutes);
 app.use('/favorite', favoriteRoutes);
+app.use('/api/location', locationRoutes);
 
 // Ruta base
 app.get('/', (req, res) => {

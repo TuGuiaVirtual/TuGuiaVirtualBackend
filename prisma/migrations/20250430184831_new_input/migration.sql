@@ -1,0 +1,4 @@
+-- AlterTable
+ALTER TABLE "PlaceTranslation" ALTER COLUMN "audioUrl" DROP NOT NULL,
+ALTER COLUMN "vrUrl" DROP NOT NULL,
+ALTER COLUMN "videoUrl" DROP NOT NULL;

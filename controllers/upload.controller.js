@@ -31,9 +31,7 @@ exports.uploadImage = async (req, res) => {
         if (user.imagePublicId) {
           cloudinary.uploader.destroy(user.imagePublicId, (error, result) => {
             if (error) {
-              console.warn('No se pudo eliminar la imagen anterior:', error);
             } else {
-              console.log('Imagen anterior eliminada:', result);
             }
           });
         }        

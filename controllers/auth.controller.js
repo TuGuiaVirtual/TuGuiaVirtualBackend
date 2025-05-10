@@ -74,8 +74,7 @@ exports.login = async (req, res) => {
 
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
-      secure: false, // cámbialo a true en producción (HTTPS)
-      path: '/auth/refreshToken',
+      secure: false,
       sameSite: 'Strict',
       maxAge: 7 * 24 * 60 * 60 * 1000
     });
@@ -189,4 +188,15 @@ exports.refreshToken = (req, res) => {
     return res.status(403).json({ message: 'Token inválido o expirado' });
   }
 };
+
+exports.logout = (req, res) => {
+  res.clearCookie('refreshToken', {
+    httpOnly: true,
+    secure: false,
+    sameSite: 'Strict'
+  });
+  return res.json({ message: 'Sesión cerrada' });
+  
+};
+
 

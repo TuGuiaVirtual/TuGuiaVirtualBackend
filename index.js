@@ -21,7 +21,8 @@ const cityRoutes = require('./routes/city.routes');
 const uploadRoutes = require('./routes/upload.routes');
 const experienceRoutes = require('./routes/experience.routes');
 const gastronomyRoutes = require('./routes/gastronomy.routes');
-const placeRoutes = require('./routes/place.routes')
+const placeRoutes = require('./routes/place.routes');
+const favoriteRoutes = require('./routes/favorite.routes');
 
 app.use('/auth', authRoutes);
 app.use('/user', userRoutes);
@@ -30,6 +31,7 @@ app.use('/cities', cityRoutes);
 app.use('/experiences', experienceRoutes);
 app.use('/gastronomy', gastronomyRoutes);
 app.use('/place', placeRoutes);
+app.use('/favorite', favoriteRoutes);
 
 // Ruta base
 app.get('/', (req, res) => {

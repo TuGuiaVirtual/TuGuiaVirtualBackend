@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { register, login, forgotPassword, resetPassword, refreshToken } = require('../controllers/auth.controller');
+const { register, login, forgotPassword, resetPassword, refreshToken, logout } = require('../controllers/auth.controller');
 const { PrismaClient } = require('@prisma/client');
 
 const prisma = new PrismaClient();
@@ -10,5 +10,6 @@ router.post('/login', login);
 router.post('/forgotPassword', forgotPassword);
 router.post('/resetPassword', resetPassword);
 router.post('/refreshToken', refreshToken);
+router.post('/logout', logout);
 
 module.exports = router;

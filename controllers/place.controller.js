@@ -109,7 +109,78 @@ exports.getTopPlaceByCity = async (req, res) => {
 
     res.json(results.filter(x => x !== null));
   } catch (error) {
-    console.error('Error al obtener los lugares más visitados:', error);
+    console.error('Error al obtener los lugares más visitados por ciudad:', error);
     res.status(500).json({ message: 'Error interno del servidor' });
   }
 };
+
+exports.getPlacesByIds = async (req, res) => {
+  const { placeIds, lang } = req.body;
+
+  if (!Array.isArray(placeIds) || placeIds.length === 0) {
+    return res.status(400).json({ message: 'La lista de IDs es inválida o está vacía' });
+  }
+
+  try {
+    const places = await prisma.place.findMany({
+      where: {
+        id: { in: placeIds },
+        translations: {
+          some: { language: lang }
+        }
+      },
+      include: {
+        city: {
+          select: {
+            id: true,
+            translations: {
+              where: { language: lang },
+              select: { name: true }
+            }
+          }
+        },
+        translations: {
+          where: { language: lang },
+          select: {
+            name: true,
+            description: true,
+            audioUrl: true,
+            reading: true,
+            vrUrl: true,
+            videoUrl: true
+          }
+        }
+      }
+    });
+
+    const response = places.map(place => {
+      const t = place.translations[0] || {};
+      const cityTranslation = place.city?.translations?.[0]?.name || null;
+
+      return {
+        id: place.id,
+        cityId: place.cityId,
+        city: {
+          id: place.city.id,
+          name: cityTranslation
+        },
+        imageUrl: place.imageUrl,
+        locationUrl: place.locationUrl,
+        views: place.views,
+        name: t.name || null,
+        description: t.description || null,
+        audioUrl: t.audioUrl || null,
+        reading: t.reading || null,
+        vrUrl: t.vrUrl || null,
+        videoUrl: t.videoUrl || null
+      };
+    });
+
+    res.json(response);
+  } catch (error) {
+    console.error('Error al obtener lugares por IDs:', error);
+    res.status(500).json({ message: 'Error al obtener lugares' });
+  }
+};
+
+

@@ -149,3 +149,139 @@ exports.getRestaurants = async (req, res) => {
   }
 };
 
+exports.getTopRestaurantsByCity = async (req, res) => {
+  const { lang } = req.query;
+
+  if (!lang) {
+    return res.status(400).json({ message: 'Faltan parámetros requeridos: cityId o lang' });
+  }
+
+  try {
+    const cities = await prisma.city.findMany({
+      select: { id: true }
+    });
+
+    const results = await Promise.all(
+      cities.map(async city => {
+        const restaurants = await prisma.restaurant.findFirst({
+          where: {
+            cityId: city.id,
+            translations: { some: { language: lang } }
+          },
+          orderBy: { views: 'desc' },
+          select: {
+            id: true,
+            imageUrl: true,
+            googleMapsUrl: true,
+            views: true,
+            cityId: true,
+            translations: {
+              where: { language: lang },
+              select: {
+                name: true,
+                description: true,
+                audioUrl: true,
+                secondInfo: true,
+                thirdInfo: true,
+                firstInfo: true
+              }
+            }
+          }
+        });
+        if (restaurants && restaurants.translations.length > 0) {
+          return {
+            id: restaurants.id,
+            cityId: restaurants.cityId,
+            imageUrl: restaurants.imageUrl,
+            locationUrl: restaurants.googleMapsUrl,
+            views: restaurants.views,
+            name: restaurants.translations[0].name,
+            description: restaurants.translations[0].description,
+            audioUrl: restaurants.translations[0].audioUrl,
+            secondInfo: restaurants.translations[0].secondInfo,
+            thirdInfo: restaurants.translations[0].thirdInfo,
+            firstInfo: restaurants.translations[0].firstInfo,
+          };
+        } else {
+          return null;
+        }
+      })
+    );
+
+    res.json(results.filter(x => x !== null));
+  } catch (error) {
+    console.error('Error al obtener las experiencias más visitados por ciudad:', error);
+    res.status(500).json({ message: 'Error interno del servidor' });
+  }
+}
+
+exports.getRestaurantsByIds = async (req, res) => {
+  const { restaurantIds, lang } = req.body;
+
+  if (!Array.isArray(restaurantIds) || restaurantIds.length === 0) {
+    return res.status(400).json({ message: 'La lista de IDs es inválida o está vacía' });
+  }
+
+  try {
+    const restaurants = await prisma.restaurant.findMany({
+      where: {
+        id: { in: restaurantIds },
+        translations: {
+          some: { language: lang }
+        }
+      },
+      include: {
+        city: {
+          select: {
+            id: true,
+            translations: {
+              where: { language: lang },
+              select: { name: true }
+            }
+          }
+        },
+        translations: {
+          where: { language: lang },
+          select: {
+            name: true,
+            description: true,
+            audioUrl: true,
+            info: true,
+            firstInfo: true,
+            secondInfo: true,
+            thirdInfo: true
+          }
+        }
+      }
+    });
+
+    const response = restaurants.map(restaurant => {
+      const t = restaurant.translations[0] || {};
+      const cityName = restaurant.city.translations[0]?.name || null;
+
+      return {
+        id: restaurant.id,
+        cityId: restaurant.cityId,
+        city: {
+          id: restaurant.city.id,
+          name: cityName
+        },
+        imageUrl: restaurant.imageUrl,
+        googleMapsUrl: restaurant.googleMapsUrl || null,
+        views: restaurant.views,
+        name: t.name || null,
+        description: t.description || null,
+        audioUrl: t.audioUrl || null,
+        info: t.info || null,
+        firstInfo: t.firstInfo || null,
+        secondInfo: t.secondInfo || null,
+        thirdInfo: t.thirdInfo || null
+      };
+    });
+
+    res.json(response);
+  } catch (error) {
+    console.error('❌ Error al obtener restaurantes por IDs:', error);
+    res.status(500).json({ message: 'Error al obtener restaurantes' });
+  }
+};

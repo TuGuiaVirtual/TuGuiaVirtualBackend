@@ -131,12 +131,12 @@ exports.getImageCity = async (req, res) => {
               equals: name,
               mode: 'insensitive',
             },
-            language: 'en',
+            language: lang,
           }
         }
       },
       select: {
-        imageHomeUrl: true
+        imageUrl: true
       }
     });
 
@@ -144,7 +144,7 @@ exports.getImageCity = async (req, res) => {
       return res.status(404).json({ message: 'Ciudad no encontrada' });
     }
 
-    res.json({ imageUrl: city.imageHomeUrl });
+    res.json({ imageUrl: city.imageUrl });
   } catch (error) {
     console.error('Error al obtener la imagen de la ciudad:', error);
     res.status(500).json({ message: 'Error interno del servidor' });
@@ -186,7 +186,6 @@ exports.getCitiesByIds = async (req, res) => {
       return {
         id: city.id,
         imageUrl: city.imageUrl,
-        imageHomeUrl: city.imageHomeUrl || null,
         link: city.link || null,
         views: city.views,
         latitude: city.latitude,

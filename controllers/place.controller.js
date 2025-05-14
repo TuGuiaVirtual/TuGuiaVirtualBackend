@@ -1,9 +1,23 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
+const jwt = require('jsonwebtoken');
 
 exports.getPlaces = async (req, res) => {
-  const cityId = parseInt(req.query.cityId);
+  const cityId = parseInt(req.query.cityId, 10);
   const lang = req.query.lang;
+  
+  let userId = null;
+  const authHeader = req.headers.authorization;
+
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    const token = authHeader.split(' ')[1];
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      userId = decoded.id;
+    } catch (err) {
+      console.warn('Token inválido, se ignora:', err.message);
+    }
+  }
 
   if (!cityId || !lang) {
     return res.status(400).json({ message: 'Faltan parámetros requeridos: cityId o lang' });
@@ -15,9 +29,11 @@ exports.getPlaces = async (req, res) => {
       orderBy: { id: 'asc' },
       select: {
         id: true,
+        cityId: true,
         imageUrl: true,
         locationUrl: true,
         views: true,
+        accessLevel: true,
         translations: {
           where: { language: lang },
           select: {
@@ -32,23 +48,92 @@ exports.getPlaces = async (req, res) => {
       }
     });
 
-    const result = places.map(place => ({
-      id: place.id,
-      imageUrl: place.imageUrl,
-      locationUrl: place.locationUrl,
-      views: place.views,
-      name: place.translations[0]?.name || null,
-      description: place.translations[0]?.description || null,
-      audioUrl: place.translations[0]?.audioUrl || null,
-      reading: place.translations[0]?.reading || null,
-      vrUrl: place.translations[0]?.vrUrl || null,
-      videoUrl: place.translations[0]?.videoUrl || null
-    }));
+    let purchases = [];
+    let isSubscribed = false;
+    let cityAccess = false;
 
-    res.json(result);
+    if (userId) {
+      purchases = await prisma.purchase.findMany({
+        where: {
+          userId,
+          status: 'COMPLETED',
+          OR: [
+            { type: 'SUBSCRIPTION', expiresAt: { gt: new Date() } },
+            { type: 'CITY', cities: { some: { cityId } } },
+            { type: 'BUNDLE', cities: { some: { cityId } } },
+            { type: 'PLACE', places: { some: { place: { cityId } } } }
+          ]
+        },
+        include: {
+          cities: true,
+          places: true
+        }
+      });
+
+      isSubscribed = purchases.some(p => p.type === 'SUBSCRIPTION' && p.expiresAt > new Date());
+
+      cityAccess = purchases.some(p =>
+        ['CITY', 'BUNDLE'].includes(p.type) &&
+        p.cities.some(c => c.cityId === cityId)
+      );
+    }
+
+    const result = places.map(place => {
+      const translation = place.translations[0];
+      let hasAccess = false;
+
+      switch (place.accessLevel) {
+        case 'FREE':
+          hasAccess = true;
+          break;
+        case 'REGISTERED':
+          hasAccess = !!userId;
+          break;
+        case 'SUBSCRIPTION':
+          hasAccess = isSubscribed;
+          break;
+        case 'PAID':
+          const hasPlace = purchases.some(p =>
+            p.type === 'PLACE' &&
+            p.places.some(pp => pp.placeId === place.id)
+          );
+          hasAccess = isSubscribed || cityAccess || hasPlace;
+          break;
+      }
+
+      const color = place.accessLevel === 'REGISTERED' ? 'yellow' : place.accessLevel === 'SUBSCRIPTION' || place.accessLevel === 'PAID' ? 'red' : 'blue';
+
+      const restrictedValue = () => {
+        switch (place.accessLevel) {
+          case 'REGISTERED':
+            return 'https://res.cloudinary.com/duw2w8izn/video/upload/v1747238085/con_registro_gk13yd.mp4';
+          case 'SUBSCRIPTION':
+          case 'PAID':
+            return 'https://res.cloudinary.com/duw2w8izn/video/upload/v1747238085/con_pago_wocym7.mp4';
+          default:
+            return null;
+        }
+      };
+
+      return {
+        id: place.id,
+        imageUrl: place.imageUrl,
+        locationUrl: place.locationUrl,
+        views: place.views,
+        name: translation?.name || null,
+        description: translation?.description || null,
+        audioUrl: hasAccess ? translation?.audioUrl || null : restrictedValue(),
+        reading: hasAccess ? translation?.reading || null : restrictedValue(),
+        vrUrl: hasAccess ? translation?.vrUrl || null : restrictedValue(),
+        videoUrl: hasAccess ? translation?.videoUrl || null : restrictedValue(),
+        color
+      };
+    });
+
+    return res.json(result);
   } catch (error) {
     console.error('Error al obtener lugares turísticos:', error);
-    res.status(500).json({ message: 'Error interno del servidor' });
+    return res.status(500).json({ message: 'Error interno del servidor' });
   }
 };
 

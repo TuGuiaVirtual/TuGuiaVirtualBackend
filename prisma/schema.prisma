@@ -29,6 +29,7 @@ model User {
   favoriteRestaurants     FavoriteRestaurant[]
   favoriteExperiences     FavoriteExperience[]
   favoritePlaces          FavoritePlace[]
+  purchases               Purchase[]
 
   touristPoints           Boolean @default(false)
   gastronomicAlerts       Boolean @default(false)
@@ -43,7 +44,6 @@ model User {
 model City {
   id                  Int                @id @default(autoincrement())
   imageUrl            String
-  imageHomeUrl        String?
   link                String?
   views               Int                @default(0)
   latitude            Float
@@ -54,7 +54,8 @@ model City {
 
   places              Place[] 
   restaurants         Restaurant[] 
-  experiences         Experience[] 
+  experiences         Experience[]
+  purchaseCities      PurchaseCity[]
 
   translations        CityTranslation[]
 
@@ -70,7 +71,7 @@ model CityTranslation {
   audioUrl      String?
   name          String
   infoCity      String?
-  description   String
+  description   String?
   buttonText    String
 
   @@unique([cityId, language])
@@ -105,7 +106,7 @@ model ExperienceTranslation {
   language      String
   audioUrl      String?
   name          String
-  description   String
+  description   String?
   firstInfo     String?
   secondInfo    String?
   thirdInfo     String?
@@ -141,7 +142,7 @@ model RestaurantTranslation {
 
   language      String
   name          String
-  description   String
+  description   String?
   info          String
   firstInfo     String
   secondInfo    String
@@ -159,13 +160,24 @@ model Place {
   imageUrl        String
   locationUrl     String
   views           Int                 @default(0)
+  accessLevel     AccessLevel @default(FREE)
+
 
   createdAt       DateTime            @default(now())
   updatedAt       DateTime            @updatedAt
 
   translations    PlaceTranslation[]
+  purchasePlaces  PurchasePlace[]
+
 
   favoritePlaces FavoritePlace[]
+}
+
+enum AccessLevel {
+  FREE          
+  REGISTERED
+  SUBSCRIPTION  
+  PAID          
 }
 
 model PlaceTranslation {
@@ -175,9 +187,9 @@ model PlaceTranslation {
 
   language        String
   name            String
-  description     String
+  description     String?
   audioUrl        String?
-  reading         String
+  reading         String?
   vrUrl           String?
   videoUrl        String?
 
@@ -223,5 +235,72 @@ model FavoritePlace {
 
   @@unique([userId, placeId])
 }
+
+model Purchase {
+  id             Int         @id @default(autoincrement())
+  userId         Int
+  user           User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  type           PurchaseType
+  status         PurchaseStatus
+  platform       Platform
+  paymentMethod  String?
+  externalId     String?
+
+  amount         Float
+  currency       String
+
+  createdAt      DateTime    @default(now())
+  expiresAt      DateTime?
+
+  cities         PurchaseCity[]
+  places         PurchasePlace[]
+  bundleName     String?
+
+  @@index([userId])
+}
+
+enum PurchaseType {
+  CITY
+  PLACE
+  BUNDLE
+  SUBSCRIPTION
+}
+
+enum PurchaseStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+enum Platform {
+  WEB
+  ANDROID
+  IOS
+}
+
+model PurchaseCity {
+  id         Int      @id @default(autoincrement())
+  purchaseId Int
+  cityId     Int
+
+  purchase   Purchase @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
+  city       City     @relation(fields: [cityId], references: [id], onDelete: Cascade)
+
+  @@unique([purchaseId, cityId])
+}
+
+model PurchasePlace {
+  id         Int      @id @default(autoincrement())
+  purchaseId Int
+  placeId    Int
+
+  purchase   Purchase @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
+  place      Place    @relation(fields: [placeId], references: [id], onDelete: Cascade)
+
+  @@unique([purchaseId, placeId])
+}
+
 
 

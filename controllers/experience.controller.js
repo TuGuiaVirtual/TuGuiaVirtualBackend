@@ -4,6 +4,8 @@ const prisma = new PrismaClient();
 exports.getTopVisitedExperiences = async (req, res) => {
   const lang = req.query.lang;
   const number = parseInt(req.query.number);
+  const color = 'blue';
+  
   if (!lang || isNaN(number)) {
     return res.status(400).json({ message: 'Faltan el parámetros' });
   }
@@ -73,6 +75,7 @@ exports.getTopVisitedExperiences = async (req, res) => {
       thirdInfo: exp.translations[0]?.thirdInfo || null,
       info: exp.translations[0]?.info || null,
       audioUrl: exp.translations[0]?.audioUrl || null,
+      color
     }));
 
     res.json(result);
@@ -85,6 +88,7 @@ exports.getTopVisitedExperiences = async (req, res) => {
 exports.getExperiences = async (req, res) => {
   const cityId = parseInt(req.query.cityId);
   const lang = req.query.lang;
+  const color = 'blue';
   let experiences;
 
   if (!lang) {
@@ -181,6 +185,7 @@ exports.getExperiences = async (req, res) => {
       thirdInfo: r.translations[0]?.thirdInfo || null,
       info: r.translations[0]?.info || null,
       audioUrl: r.translations[0]?.audioUrl || null,
+      color
     }));
 
     res.json(result);
@@ -192,6 +197,7 @@ exports.getExperiences = async (req, res) => {
 
 exports.getTopExperiencesByCity = async (req, res) => {
   const { lang } = req.query;
+  const color = 'blue';
 
   try {
     const cities = await prisma.city.findMany({
@@ -239,7 +245,8 @@ exports.getTopExperiencesByCity = async (req, res) => {
             secondInfo: experience.translations[0].secondInfo,
             thirdInfo: experience.translations[0].thirdInfo,
             firstInfo: experience.translations[0].firstInfo,
-            price: experience.price
+            price: experience.price,
+            color
           };
         } else {
           return null;
@@ -256,6 +263,7 @@ exports.getTopExperiencesByCity = async (req, res) => {
 
 exports.getExperiencesByIds = async (req, res) => {
   const { experiencesIds, lang } = req.body;
+  const color = 'blue';
 
   if (!Array.isArray(experiencesIds) || experiencesIds.length === 0) {
     return res.status(400).json({ message: 'La lista de IDs es inválida o está vacía' });
@@ -315,7 +323,8 @@ exports.getExperiencesByIds = async (req, res) => {
         info: t.info || null,
         firstInfo: t.firstInfo || null,
         secondInfo: t.secondInfo || null,
-        thirdInfo: t.thirdInfo || null
+        thirdInfo: t.thirdInfo || null,
+        color
       };
     });
 

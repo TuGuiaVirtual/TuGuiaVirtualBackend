@@ -4,6 +4,7 @@ const prisma = new PrismaClient();
 exports.getTopVisitedGastronomy = async (req, res) => {
   const lang = req.query.lang;
   const number = parseInt(req.query.number);
+  const color = 'blue';
 
   if (!lang || isNaN(number)) {
     return res.status(400).json({ message: 'Falta el parámetro lang' });
@@ -72,6 +73,7 @@ exports.getTopVisitedGastronomy = async (req, res) => {
       thirdInfo: r.translations[0]?.thirdInfo || null,
       info: r.translations[0]?.info || null,
       audioUrl: r.translations[0]?.audioUrl || null,
+      color
     }));
 
     res.json(result);
@@ -84,6 +86,7 @@ exports.getTopVisitedGastronomy = async (req, res) => {
 exports.getRestaurants = async (req, res) => {
   const cityId = parseInt(req.query.cityId);
   const lang = req.query.lang;
+  const color = 'blue';
 
   if (!cityId || !lang) {
     return res.status(400).json({ message: 'Faltan parámetros requeridos: cityId o lang' });
@@ -140,6 +143,7 @@ exports.getRestaurants = async (req, res) => {
       thirdInfo: r.translations[0]?.thirdInfo || null,
       info: r.translations[0]?.info || null,
       audioUrl: r.translations[0]?.audioUrl || null,
+      color
     }));
 
     res.json(result);
@@ -151,6 +155,7 @@ exports.getRestaurants = async (req, res) => {
 
 exports.getTopRestaurantsByCity = async (req, res) => {
   const { lang } = req.query;
+  const color = 'blue';
 
   if (!lang) {
     return res.status(400).json({ message: 'Faltan parámetros requeridos: cityId o lang' });
@@ -188,6 +193,7 @@ exports.getTopRestaurantsByCity = async (req, res) => {
             }
           }
         });
+
         if (restaurants && restaurants.translations.length > 0) {
           return {
             id: restaurants.id,
@@ -201,6 +207,7 @@ exports.getTopRestaurantsByCity = async (req, res) => {
             secondInfo: restaurants.translations[0].secondInfo,
             thirdInfo: restaurants.translations[0].thirdInfo,
             firstInfo: restaurants.translations[0].firstInfo,
+            color
           };
         } else {
           return null;
@@ -217,6 +224,7 @@ exports.getTopRestaurantsByCity = async (req, res) => {
 
 exports.getRestaurantsByIds = async (req, res) => {
   const { restaurantIds, lang } = req.body;
+  const color = 'blue';
 
   if (!Array.isArray(restaurantIds) || restaurantIds.length === 0) {
     return res.status(400).json({ message: 'La lista de IDs es inválida o está vacía' });
@@ -275,7 +283,8 @@ exports.getRestaurantsByIds = async (req, res) => {
         info: t.info || null,
         firstInfo: t.firstInfo || null,
         secondInfo: t.secondInfo || null,
-        thirdInfo: t.thirdInfo || null
+        thirdInfo: t.thirdInfo || null,
+        color
       };
     });
 

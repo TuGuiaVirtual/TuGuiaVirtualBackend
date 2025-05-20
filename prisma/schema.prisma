@@ -49,6 +49,7 @@ model City {
   latitude            Float
   longitude           Float
   googleMapsUrl       String?
+  cityPrice           String?
   createdAt           DateTime           @default(now())
   updatedAt           DateTime           @updatedAt
 
@@ -160,7 +161,8 @@ model Place {
   imageUrl        String
   locationUrl     String
   views           Int                 @default(0)
-  accessLevel     AccessLevel @default(FREE)
+  placePrice      String?
+  accessLevel     AccessLevel         @default(FREE)
 
 
   createdAt       DateTime            @default(now())

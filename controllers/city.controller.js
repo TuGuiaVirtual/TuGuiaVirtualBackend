@@ -153,6 +153,7 @@ exports.getImageCity = async (req, res) => {
 
 exports.getCitiesByIds = async (req, res) => {
   const { cityIds, lang } = req.body;
+  const color = 'blue';
 
   if (!Array.isArray(cityIds) || cityIds.length === 0) {
     return res.status(400).json({ message: 'La lista de IDs es inválida o está vacía' });
@@ -195,7 +196,8 @@ exports.getCitiesByIds = async (req, res) => {
         audioUrl: t.audioUrl || null,
         infoCity: t.infoCity || null,
         description: t.description || null,
-        buttonText: t.buttonText || null
+        buttonText: t.buttonText || null,
+        color
       };
     });
 

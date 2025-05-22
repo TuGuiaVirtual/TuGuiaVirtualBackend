@@ -130,6 +130,7 @@ exports.getPlaces = async (req, res) => {
 
       return {
         id: place.id,
+        cityId: place.cityId,
         imageUrl: place.imageUrl,
         locationUrl: place.locationUrl,
         views: place.views,

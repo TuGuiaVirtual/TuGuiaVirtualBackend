@@ -24,6 +24,7 @@ const gastronomyRoutes = require('./routes/gastronomy.routes');
 const placeRoutes = require('./routes/place.routes');
 const favoriteRoutes = require('./routes/favorite.routes');
 const locationRoutes = require('./routes/location.routes');
+const paymentRoutes = require('./routes/payment.routes');
 
 app.use('/auth', authRoutes);
 app.use('/user', userRoutes);
@@ -34,6 +35,7 @@ app.use('/gastronomy', gastronomyRoutes);
 app.use('/place', placeRoutes);
 app.use('/favorite', favoriteRoutes);
 app.use('/api/location', locationRoutes);
+app.use('/payment', paymentRoutes);
 
 // Ruta base
 app.get('/', (req, res) => {

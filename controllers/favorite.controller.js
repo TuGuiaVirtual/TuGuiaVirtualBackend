@@ -45,82 +45,128 @@ exports.toggleFavorite = async (req, res) => {
     }
   };
 
-  exports.getFavorites = async (req, res) => {
-    const userId = req.user.id;
-    const lang = req.query.lang || 'es';
+exports.getFavorites = async (req, res) => {
+  const userId = req.user.id;
+  const lang = req.query.lang || 'es';
   
-    try {
-      const favoriteCities = await prisma.favoriteCity.findMany({
-        where: { userId },
-        select: { cityId: true }
-      });
+  try {
+    const favoriteCities = await prisma.favoriteCity.findMany({
+      where: { userId },
+      select: { cityId: true }
+    });
   
-      const favoritePlaces = await prisma.favoritePlace.findMany({
-        where: { userId },
-        select: { placeId: true }
-      });
+    const favoritePlaces = await prisma.favoritePlace.findMany({
+      where: { userId },
+      select: { placeId: true }
+    });
   
-      const favoriteRestaurants = await prisma.favoriteRestaurant.findMany({
-        where: { userId },
-        select: { restaurantId: true }
-      });
+    const favoriteRestaurants = await prisma.favoriteRestaurant.findMany({
+      where: { userId },
+      select: { restaurantId: true }
+    });
   
-      const favoriteExperiences = await prisma.favoriteExperience.findMany({
-        where: { userId },
-        select: { experienceId: true }
-      });
+    const favoriteExperiences = await prisma.favoriteExperience.findMany({
+      where: { userId },
+      select: { experienceId: true }
+    });
   
-      const cities = await prisma.city.findMany({
-        where: { id: { in: favoriteCities.map(f => f.cityId) } },
-        include: {
-          translations: {
-            where: { language: lang }
-          }
+    const cities = await prisma.city.findMany({
+      where: { id: { in: favoriteCities.map(f => f.cityId) } },
+      include: {
+        translations: {
+          where: { language: lang }
         }
-      });
+      }
+    });
   
-      const places = await prisma.place.findMany({
-        where: { id: { in: favoritePlaces.map(f => f.placeId) } },
-        include: {
-          translations: {
-            where: { language: lang }
-          },
-          city: true
-        }
-      });
+    const places = await prisma.place.findMany({
+      where: { id: { in: favoritePlaces.map(f => f.placeId) } },
+      include: {
+        translations: {
+          where: { language: lang }
+        },
+        city: true
+      }
+    });
   
-      const restaurants = await prisma.restaurant.findMany({
-        where: { id: { in: favoriteRestaurants.map(f => f.restaurantId) } },
-        include: {
-          translations: {
-            where: { language: lang }
-          },
-          city: true
-        }
-      });
+    const restaurants = await prisma.restaurant.findMany({
+      where: { id: { in: favoriteRestaurants.map(f => f.restaurantId) } },
+      include: {
+        translations: {
+          where: { language: lang }
+        },
+        city: true
+      }
+    });
   
-      const experiences = await prisma.experience.findMany({
-        where: { id: { in: favoriteExperiences.map(f => f.experienceId) } },
-        include: {
-          translations: {
-            where: { language: lang }
-          },
-          city: true
-        }
-      });
+    const experiences = await prisma.experience.findMany({
+      where: { id: { in: favoriteExperiences.map(f => f.experienceId) } },
+      include: {
+        translations: {
+           where: { language: lang }
+        },
+        city: true
+      }
+    });
   
-      res.json({
-        cities,
-        places,
-        restaurants,
-        experiences
-      });
-  
-    } catch (error) {
-      console.error('Error al obtener favoritos:', error);
-      res.status(500).json({ message: 'Error al obtener favoritos' });
+    res.json({
+      cities,
+      places,
+      restaurants,
+      experiences
+    });
+
+  } catch (error) {
+    console.error('Error al obtener favoritos:', error);
+    res.status(500).json({ message: 'Error al obtener favoritos' });
+  }
+};
+
+exports.addView = async (req, res) => {
+  const { tipo, id } = req.body;
+
+  try {
+    switch (tipo) {
+      case 'city':
+        const ciudadActualizada = await prisma.city.update({
+          where: { id: parseInt(id) },
+          data: { views: { increment: 1 } },
+        });
+        return res.status(200).json(ciudadActualizada);
+
+      case 'experience':
+        const experienciaActualizada = await prisma.experience.update({
+          where: { id: parseInt(id) },
+          data: { views: { increment: 1 } },
+        });
+        return res.status(200).json(experienciaActualizada);
+
+      case 'restaurant':
+        const restauranteActualizado = await prisma.restaurant.update({
+          where: { id: parseInt(id) },
+          data: { views: { increment: 1 } },
+        });
+        return res.status(200).json(restauranteActualizado);
+
+      case 'place':
+        const lugarActualizado = await prisma.place.update({
+          where: { id: parseInt(id) },
+          data: { views: { increment: 1 } },
+        });
+        return res.status(200).json(lugarActualizado);
+
+      default:
+        return res.status(400).json({ error: 'Tipo no válido' });
     }
-  };
+  } catch (error) {
+    console.error('Error al incrementar visitas:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+};
+
+
+
+
   
   
   

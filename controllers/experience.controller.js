@@ -223,6 +223,7 @@ exports.getTopExperiencesByCity = async (req, res) => {
               where: { language: lang },
               select: {
                 name: true,
+                cityName: true,
                 description: true,
                 audioUrl: true,
                 secondInfo: true,
@@ -240,6 +241,7 @@ exports.getTopExperiencesByCity = async (req, res) => {
             locationUrl: experience.googleMapsUrl,
             views: experience.views,
             name: experience.translations[0].name,
+            cityName: experience.translations[0].cityName,
             description: experience.translations[0].description,
             audioUrl: experience.translations[0].audioUrl,
             secondInfo: experience.translations[0].secondInfo,

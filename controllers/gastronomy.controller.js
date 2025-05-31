@@ -184,6 +184,7 @@ exports.getTopRestaurantsByCity = async (req, res) => {
               where: { language: lang },
               select: {
                 name: true,
+                cityName: true,
                 description: true,
                 audioUrl: true,
                 secondInfo: true,
@@ -202,6 +203,7 @@ exports.getTopRestaurantsByCity = async (req, res) => {
             locationUrl: restaurants.googleMapsUrl,
             views: restaurants.views,
             name: restaurants.translations[0].name,
+            cityName: restaurants.translations[0].cityName,
             description: restaurants.translations[0].description,
             audioUrl: restaurants.translations[0].audioUrl,
             secondInfo: restaurants.translations[0].secondInfo,

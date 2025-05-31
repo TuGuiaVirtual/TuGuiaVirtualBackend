@@ -138,6 +138,7 @@ exports.getPlaces = async (req, res) => {
         cityPrice: place.city?.cityPrice || null,
         cityName: place.city?.translations?.[0]?.name || null,
         name: translation?.name || null,
+        cityName: translation?.cityName || null,
         description: translation?.description || null,
         audioUrl: hasAccess ? translation?.audioUrl || null : restrictedValue(),
         reading: hasAccess ? translation?.reading || null : restrictedValue(),
@@ -214,6 +215,7 @@ exports.getTopPlaceByCity = async (req, res) => {
               where: { language: lang },
               select: {
                 name: true,
+                cityName: true,
                 description: true,
                 audioUrl: true,
                 reading: true,
@@ -279,6 +281,7 @@ exports.getTopPlaceByCity = async (req, res) => {
           locationUrl: place.locationUrl,
           views: place.views,
           name: translation.name,
+          cityName: translation.cityName,
           description: translation.description,
           audioUrl: hasAccess ? translation.audioUrl : restrictedValue(),
           reading: hasAccess ? translation.reading : restrictedValue(),

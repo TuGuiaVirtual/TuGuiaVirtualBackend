@@ -13,7 +13,8 @@ exports.getProfile = async (req, res) => {
         guideNews: true,
         emailNotifications: true,
         allowLocation: true,
-        autoPlayAudio: true
+        autoPlayAudio: true,
+        name: true,
       }
     });
 

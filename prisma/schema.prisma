@@ -16,7 +16,7 @@ datasource db {
 model User {
   id        Int           @id @default(autoincrement())
   email                   String   @unique
-  password                String
+  password                String?
   name                    String
   phone                   String?
   profileImageUrl         String?
@@ -39,6 +39,10 @@ model User {
 
   allowLocation           Boolean  @default(true)
   autoPlayAudio           Boolean  @default(true)
+
+  provider                String?
+  providerId              String?
+
 }
 
 model City {
@@ -71,6 +75,7 @@ model CityTranslation {
   language      String
   audioUrl      String?
   name          String
+  country       String?
   infoCity      String?
   description   String?
   buttonText    String
@@ -107,6 +112,7 @@ model ExperienceTranslation {
   language      String
   audioUrl      String?
   name          String
+  cityName      String?
   description   String?
   firstInfo     String?
   secondInfo    String?
@@ -143,6 +149,7 @@ model RestaurantTranslation {
 
   language      String
   name          String
+  cityName      String?
   description   String?
   info          String
   firstInfo     String
@@ -162,6 +169,7 @@ model Place {
   locationUrl     String
   views           Int                 @default(0)
   placePrice      String?
+  tourNumber      String?
   accessLevel     AccessLevel         @default(FREE)
 
 
@@ -189,6 +197,7 @@ model PlaceTranslation {
 
   language        String
   name            String
+  cityName        String?
   description     String?
   audioUrl        String?
   reading         String?

@@ -55,6 +55,7 @@ exports.getTopVisitedCities = async (req, res) => {
             where: { language: lang },
             select: {
               name: true,
+              country: true,
               description: true,
               buttonText: true,
               infoCity: true,
@@ -96,7 +97,7 @@ exports.getTopVisitedCities = async (req, res) => {
             longitude: city.longitude,
             googleMapsUrl: city.googleMapsUrl,
             name: city.translations[0]?.name || null,
-            cityName: city.translations[0]?.name || null,
+            cityName: city.translations[0]?.country || null,
             description: city.translations[0]?.description || null,
             buttonText: city.translations[0]?.buttonText || null,
             infoCity: city.translations[0]?.infoCity || null,
@@ -172,6 +173,7 @@ exports.getCitiesByIds = async (req, res) => {
           where: { language: lang },
           select: {
             name: true,
+            country: true,
             audioUrl: true,
             infoCity: true,
             description: true,
@@ -193,6 +195,7 @@ exports.getCitiesByIds = async (req, res) => {
         longitude: city.longitude,
         googleMapsUrl: city.googleMapsUrl || null,
         name: t.name || null,
+        cityName: t.country || null,
         audioUrl: t.audioUrl || null,
         infoCity: t.infoCity || null,
         description: t.description || null,

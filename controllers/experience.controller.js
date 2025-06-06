@@ -215,6 +215,7 @@ exports.getTopExperiencesByCity = async (req, res) => {
           select: {
             id: true,
             imageUrl: true,
+            link: true,
             googleMapsUrl: true,
             views: true,
             cityId: true,
@@ -238,6 +239,7 @@ exports.getTopExperiencesByCity = async (req, res) => {
             id: experience.id,
             cityId: experience.cityId,
             imageUrl: experience.imageUrl,
+            link: experience.link,
             locationUrl: experience.googleMapsUrl,
             views: experience.views,
             name: experience.translations[0].name,

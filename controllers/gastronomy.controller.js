@@ -177,6 +177,7 @@ exports.getTopRestaurantsByCity = async (req, res) => {
           select: {
             id: true,
             imageUrl: true,
+            link: true,
             googleMapsUrl: true,
             views: true,
             cityId: true,
@@ -200,6 +201,7 @@ exports.getTopRestaurantsByCity = async (req, res) => {
             id: restaurants.id,
             cityId: restaurants.cityId,
             imageUrl: restaurants.imageUrl,
+            link: restaurants.link,
             locationUrl: restaurants.googleMapsUrl,
             views: restaurants.views,
             name: restaurants.translations[0].name,

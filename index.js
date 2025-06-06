@@ -34,7 +34,7 @@ app.use('/experiences', experienceRoutes);
 app.use('/gastronomy', gastronomyRoutes);
 app.use('/place', placeRoutes);
 app.use('/favorite', favoriteRoutes);
-app.use('/api/location', locationRoutes);
+app.use('/location', locationRoutes);
 app.use('/payment', paymentRoutes);
 
 // Ruta base

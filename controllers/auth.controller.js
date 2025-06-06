@@ -79,7 +79,7 @@ exports.login = async (req, res) => {
       maxAge: 7 * 24 * 60 * 60 * 1000
     });
 
-    res.json({ message: 'Login exitoso', accessToken });
+    res.json({ message: 'Login exitoso', accessToken, name: user.name });
 
   } catch (error) {
     console.error(error);

@@ -339,3 +339,115 @@ exports.getExperiencesByIds = async (req, res) => {
   }
 };
 
+exports.getExperiencesNear = async (req, res) => {
+  const { lang, latitude, longitude } = req.query;
+  const RADIUS_KM = 60;
+
+  if (!lang || !latitude || !longitude) {
+    return res.status(400).json({ message: 'Faltan parámetros' });
+  }
+
+  let userId = null;
+
+  // 🔒 Autenticación (opcional)
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    const token = authHeader.split(' ')[1];
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      userId = decoded.id;
+    } catch (err) {
+      console.warn('Token inválido:', err.message);
+    }
+  }
+
+  try {
+    // 🌍 Filtrar las cities cercanas usando Haversine
+    const nearbyCities = await prisma.$queryRawUnsafe(`
+      SELECT id
+      FROM "City"
+      WHERE (
+        6371 * acos(
+          cos(radians(CAST(${latitude} AS float))) *
+          cos(radians(CAST(latitude AS float))) *
+          cos(radians(CAST(longitude AS float)) - radians(CAST(${longitude} AS float))) +
+          sin(radians(CAST(${latitude} AS float))) *
+          sin(radians(CAST(latitude AS float)))
+        )
+      ) <= ${RADIUS_KM}
+    `);
+
+    const nearbyCityIds = nearbyCities.map(c => c.id);
+
+    if (nearbyCityIds.length === 0) {
+      return res.json([]); // No hay ciudades cercanas
+    }
+
+    // 🔍 Buscar las experiencias de esas ciudades con traducciones
+    const experiences = await prisma.experience.findMany({
+      where: {
+        cityId: { in: nearbyCityIds },
+        translations: {
+          some: { language: lang }
+        }
+      },
+      include: {
+        city: {
+          select: {
+            id: true,
+            cityPrice: true,
+            translations: {
+              where: { language: lang },
+              select: { name: true }
+            }
+          }
+        },
+        translations: {
+          where: { language: lang },
+          select: {
+            name: true,
+            description: true,
+            audioUrl: true,
+            info: true,
+            firstInfo: true,
+            secondInfo: true,
+            thirdInfo: true
+          }
+        }
+      }
+    });
+
+    // 🔥 Construir la respuesta
+    const response = experiences.map(experience => {
+      const t = experience.translations[0] || {};
+      const cityTranslation = experience.city?.translations?.[0]?.name || null;
+
+      return {
+        id: experience.id,
+        cityId: experience.cityId,
+        city: {
+          id: experience.cityId,
+          name: cityTranslation
+        },
+        cityPrice: experience.city.cityPrice,
+        imageUrl: experience.imageUrl,
+        link: experience.link,
+        views: experience.views,
+        price: experience.price,
+        name: t.name || null,
+        description: t.description || null,
+        info: t.info || null,
+        firstInfo: t.firstInfo || null,
+        secondInfo: t.secondInfo || null,
+        thirdInfo: t.thirdInfo || null,
+        audioUrl: t.audioUrl || null
+      };
+    });
+
+    res.json(response);
+  } catch (error) {
+    console.error('Error al obtener experiencias cercanas:', error);
+    res.status(500).json({ message: 'Error interno del servidor' });
+  }
+};
+

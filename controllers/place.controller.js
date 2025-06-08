@@ -39,6 +39,7 @@ exports.getPlaces = async (req, res) => {
           where: { language: lang },
           select: {
             name: true,
+            cityName: true,
             description: true,
             audioUrl: true,
             reading: true,
@@ -447,6 +448,178 @@ exports.getPlacesByIds = async (req, res) => {
     res.status(500).json({ message: 'Error al obtener lugares' });
   }
 };
+
+exports.getPlaceNear = async (req, res) => {
+  const { lang, latitude, longitude } = req.query;
+  const RADIUS_KM = 60;
+
+  if (!lang || !latitude || !longitude) {
+    return res.status(400).json({ message: 'Faltan parámetros' });
+  }
+
+  let userId = null;
+  let isSubscribed = false;
+
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    const token = authHeader.split(' ')[1];
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      userId = decoded.id;
+    } catch (err) {
+      console.warn('Token inválido:', err.message);
+    }
+  }
+
+  try {
+    // 🔥 Filtrar las cities cercanas usando Haversine
+    const nearbyCities = await prisma.$queryRawUnsafe(`
+      SELECT id
+      FROM "City"
+      WHERE (
+        6371 * acos(
+          cos(radians(CAST(${latitude} AS float))) *
+          cos(radians(CAST(latitude AS float))) *
+          cos(radians(CAST(longitude AS float)) - radians(CAST(${longitude} AS float))) +
+          sin(radians(CAST(${latitude} AS float))) *
+          sin(radians(CAST(latitude AS float)))
+        )
+      ) <= ${RADIUS_KM}
+    `);
+
+    const nearbyCityIds = nearbyCities.map(c => c.id);
+
+    if (nearbyCityIds.length === 0) {
+      return res.json([]); // No hay ciudades cercanas
+    }
+
+    // 🔥 Buscar los lugares de esas ciudades con traducciones
+    const places = await prisma.place.findMany({
+      where: {
+        cityId: { in: nearbyCityIds },
+        translations: { some: { language: lang } }
+      },
+      include: {
+        city: {
+          select: {
+            id: true,
+            cityPrice: true,
+            translations: {
+              where: { language: lang },
+              select: { name: true }
+            }
+          }
+        },
+        translations: {
+          where: { language: lang },
+          select: {
+            name: true,
+            description: true,
+            audioUrl: true,
+            reading: true,
+            vrUrl: true,
+            videoUrl: true
+          }
+        }
+      }
+    });
+
+    let purchases = [];
+    let cityAccessByCityId = {};
+
+    if (userId) {
+      purchases = await prisma.purchase.findMany({
+        where: {
+          userId,
+          status: 'COMPLETED',
+          OR: [
+            { type: 'SUBSCRIPTION', expiresAt: { gt: new Date() } },
+            { type: 'CITY', cities: { some: {} } },
+            { type: 'BUNDLE', cities: { some: {} } },
+            { type: 'PLACE', places: { some: {} } }
+          ]
+        },
+        include: {
+          cities: true,
+          places: true
+        }
+      });
+
+      isSubscribed = purchases.some(p => p.type === 'SUBSCRIPTION' && p.expiresAt > new Date());
+
+      purchases.forEach(p => {
+        if (['CITY', 'BUNDLE'].includes(p.type)) {
+          p.cities.forEach(c => {
+            cityAccessByCityId[c.cityId] = true;
+          });
+        }
+      });
+    }
+
+    const restrictedValue = (accessLevel) => {
+      switch (accessLevel) {
+        case 'REGISTERED':
+          return 'https://res.cloudinary.com/duw2w8izn/video/upload/v1747238085/con_registro_gk13yd.mp4';
+        case 'SUBSCRIPTION':
+        case 'PAID':
+          return 'https://res.cloudinary.com/duw2w8izn/video/upload/v1747238085/con_pago_wocym7.mp4';
+        default:
+          return null;
+      }
+    };
+
+    const response = places.map(place => {
+      const t = place.translations[0] || {};
+      const cityTranslation = place.city?.translations?.[0]?.name || null;
+
+      let hasAccess = false;
+      const cityId = place.cityId;
+
+      if (place.accessLevel === 'FREE') {
+        hasAccess = true;
+      } else if (place.accessLevel === 'REGISTERED') {
+        hasAccess = !!userId;
+      } else if (place.accessLevel === 'SUBSCRIPTION') {
+        hasAccess = isSubscribed;
+      } else if (place.accessLevel === 'PAID') {
+        const hasPlace = purchases.some(p =>
+          p.type === 'PLACE' && p.places.some(pp => pp.placeId === place.id)
+        );
+        const cityAccess = cityAccessByCityId[cityId];
+        hasAccess = isSubscribed || cityAccess || hasPlace;
+      }
+
+      const color = place.accessLevel === 'REGISTERED' ? 'yellow' : ['SUBSCRIPTION', 'PAID'].includes(place.accessLevel) ? 'red' : 'blue';
+
+      return {
+        id: place.id,
+        cityId,
+        city: {
+          id: cityId,
+          name: cityTranslation
+        },
+        cityPrice: place.cityPrice,
+        imageUrl: place.imageUrl,
+        locationUrl: place.locationUrl,
+        views: place.views,
+        name: t.name || null,
+        description: t.description || null,
+        audioUrl: hasAccess ? t.audioUrl || null : restrictedValue(place.accessLevel),
+        reading: hasAccess ? t.reading || null : restrictedValue(place.accessLevel),
+        vrUrl: hasAccess ? t.vrUrl || null : restrictedValue(place.accessLevel),
+        videoUrl: hasAccess ? t.videoUrl || null : restrictedValue(place.accessLevel),
+        color
+      };
+    });
+
+    res.json(response);
+  } catch (error) {
+    console.error('Error al obtener lugares cercanos:', error);
+    res.status(500).json({ message: 'Error interno del servidor' });
+  }
+};
+
+
 
 
 

@@ -4,7 +4,8 @@ const {
     getCityNamesByLanguage,
     getTopVisitedCities,
     getImageCity,
-    getCitiesByIds
+    getCitiesByIds,
+    getCitiesNear
 } = require('../controllers/city.controller');
 const { PrismaClient } = require('@prisma/client');
 
@@ -14,5 +15,7 @@ router.get('/getCitiesLang', getCityNamesByLanguage);
 router.get('/getTopVisitedCities', getTopVisitedCities);
 router.get('/getImageCity', getImageCity);
 router.post('/getCitiesByIds', getCitiesByIds);
+router.get('/getCitiesNear', getCitiesNear);
+
 
 module.exports = router;

@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const { PrismaClient } = require('@prisma/client');
-const { sendResetEmail } = require('../utils/mailer');
+const { sendResetEmail, sendVerificationEmail } = require('../utils/mailer');
 
 const prisma = new PrismaClient();
 
@@ -27,9 +27,20 @@ exports.register = async (req, res) => {
           name,
         },
       });
+
+      const verificationToken = jwt.sign(
+        { email: newUser.email }, 
+        process.env.JWT_SECRET, 
+        { expiresIn: '1d' }
+      );
+
+      const verificationLink = `http://localhost:8100/verify-email?token=${verificationToken}`;
+      console.log('Enlace de verificación:', verificationLink);
+
+      await sendVerificationEmail(newUser.email, verificationLink);
   
       res.status(201).json({
-        message: 'Usuario registrado con éxito',
+        message: 'Usuario registrado con éxito. Se ha enviado un email de verificación.',
         user: {
           id: newUser.id,
           email: newUser.email,
@@ -58,6 +69,10 @@ exports.login = async (req, res) => {
     const validPassword = await bcrypt.compare(password, user.password);
     if (!validPassword) {
       return res.status(401).json({ message: 'Contraseña inválida' });
+    }
+
+    if (!user.emailVerified) {
+      return res.status(409).json({ message: 'Correo no verificado' });
     }
 
     const accessToken = jwt.sign(
@@ -198,5 +213,8 @@ exports.logout = (req, res) => {
   return res.json({ message: 'Sesión cerrada' });
   
 };
+
+
+
 
 

@@ -295,6 +295,7 @@ exports.getExperiencesByIds = async (req, res) => {
           where: { language: lang },
           select: {
             name: true,
+            cityName: true,
             description: true,
             audioUrl: true,
             info: true,
@@ -322,6 +323,7 @@ exports.getExperiencesByIds = async (req, res) => {
         price: exp.price || null,
         views: exp.views,
         name: t.name || null,
+        cityName: t.cityName || null,
         description: t.description || null,
         audioUrl: t.audioUrl || null,
         info: t.info || null,
@@ -349,7 +351,6 @@ exports.getExperiencesNear = async (req, res) => {
 
   let userId = null;
 
-  // 🔒 Autenticación (opcional)
   const authHeader = req.headers.authorization;
   if (authHeader && authHeader.startsWith('Bearer ')) {
     const token = authHeader.split(' ')[1];
@@ -362,7 +363,6 @@ exports.getExperiencesNear = async (req, res) => {
   }
 
   try {
-    // 🌍 Filtrar las cities cercanas usando Haversine
     const nearbyCities = await prisma.$queryRawUnsafe(`
       SELECT id
       FROM "City"
@@ -380,10 +380,9 @@ exports.getExperiencesNear = async (req, res) => {
     const nearbyCityIds = nearbyCities.map(c => c.id);
 
     if (nearbyCityIds.length === 0) {
-      return res.json([]); // No hay ciudades cercanas
+      return res.json([]);
     }
 
-    // 🔍 Buscar las experiencias de esas ciudades con traducciones
     const experiences = await prisma.experience.findMany({
       where: {
         cityId: { in: nearbyCityIds },
@@ -417,7 +416,6 @@ exports.getExperiencesNear = async (req, res) => {
       }
     });
 
-    // 🔥 Construir la respuesta
     const response = experiences.map(experience => {
       const t = experience.translations[0] || {};
       const cityTranslation = experience.city?.translations?.[0]?.name || null;

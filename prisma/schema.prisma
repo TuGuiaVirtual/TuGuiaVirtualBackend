@@ -17,6 +17,7 @@ model User {
   id        Int           @id @default(autoincrement())
   email                   String   @unique
   password                String?
+  emailVerified           Boolean  @default(false)
   name                    String
   phone                   String?
   profileImageUrl         String?
@@ -313,5 +314,14 @@ model PurchasePlace {
   @@unique([purchaseId, placeId])
 }
 
+model StaticDocument {
+  id        Int      @id @default(autoincrement())
+  key       String
+  language  String
+  url       String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
+  @@unique([key, language])
+}
 

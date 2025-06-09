@@ -1,5 +1,6 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
+const jwt = require('jsonwebtoken');
 
 exports.getProfile = async (req, res) => {
   try {
@@ -30,7 +31,7 @@ exports.getProfile = async (req, res) => {
 };
 
 exports.updateProfile = async (req, res) => {
-  const {name, phone} = req.body;
+  const { name, phone } = req.body;
 
   if (!name && !phone) {
     return res.status(400).json({message: 'Debes enviar al menos un campo para actualizar'})
@@ -127,3 +128,50 @@ exports.updatePermissions = async (req, res) => {
   }
 };
 
+exports.getDoc = async (req, res) => {
+  const { nameDoc, lang } = req.query;
+
+  if (!nameDoc || !lang) {
+    return res.status(400).json({ message: 'Faltan parámetros' });
+  }
+
+  try {
+    const doc = await prisma.staticDocument.findUnique({
+      where: {
+        key_language: {
+          key: nameDoc,
+          language: lang
+        }
+      }
+    });
+
+    if (!doc) {
+      return res.status(404).json({ message: 'Documento no encontrado' });
+    }
+
+    res.json({ url: doc.url });
+  } catch (error) {
+    console.error('Error al obtener el documento:', error);
+    res.status(500).json({ message: 'Error interno del servidor' });
+  }
+};
+
+exports.verifyEmail = async (req, res) => {
+  const { token } = req.query;
+  if (!token) {
+    return res.status(400).json({ message: 'Token no proporcionado' });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await prisma.user.update({
+      where: { email: decoded.email },
+      data: { emailVerified: true }
+    });
+
+    res.json({ message: 'Correo verificado correctamente', user });
+  } catch (error) {
+    console.error(error);
+    res.status(400).json({ message: 'Token inválido o expirado' });
+  }
+};

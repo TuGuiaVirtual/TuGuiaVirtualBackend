@@ -188,6 +188,7 @@ exports.getCitiesByIds = async (req, res) => {
 
       return {
         id: city.id,
+        cityId: city.id,
         imageUrl: city.imageUrl,
         link: city.link || null,
         views: city.views,
@@ -281,6 +282,7 @@ exports.getCitiesNear = async (req, res) => {
 
       return {
         id: city.id,
+        cityId: city.id,
         name: t.name || null,
         country: t.country || null,
         description: t.description || null,

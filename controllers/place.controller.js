@@ -344,6 +344,7 @@ exports.getPlacesByIds = async (req, res) => {
           where: { language: lang },
           select: {
             name: true,
+            cityName: true,
             description: true,
             audioUrl: true,
             reading: true,
@@ -433,6 +434,7 @@ exports.getPlacesByIds = async (req, res) => {
         locationUrl: place.locationUrl,
         views: place.views,
         name: t.name || null,
+        cityName: t.cityName ||null,
         description: t.description || null,
         audioUrl: hasAccess ? t.audioUrl || null : restrictedValue(place.accessLevel),
         reading: hasAccess ? t.reading || null : restrictedValue(place.accessLevel),

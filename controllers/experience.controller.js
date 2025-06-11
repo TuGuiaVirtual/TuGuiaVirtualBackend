@@ -405,6 +405,7 @@ exports.getExperiencesNear = async (req, res) => {
           where: { language: lang },
           select: {
             name: true,
+            cityName: true,
             description: true,
             audioUrl: true,
             info: true,
@@ -433,6 +434,7 @@ exports.getExperiencesNear = async (req, res) => {
         views: experience.views,
         price: experience.price,
         name: t.name || null,
+        cityName: t.cityName || null,
         description: t.description || null,
         info: t.info || null,
         firstInfo: t.firstInfo || null,

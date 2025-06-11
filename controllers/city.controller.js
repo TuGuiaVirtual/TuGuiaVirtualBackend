@@ -1,6 +1,35 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
+exports.getIdCity = async (req, res) => {
+  const { cityName, lang } = req.query;
+
+  if (!cityName && !lang) {
+    return res.status(400).json({ message: 'Faltan parámetros'});
+  }
+
+  try {
+    const cityId = await prisma.cityTranslation.findFirst({
+      where: {
+        language: lang,
+        name: cityName
+      },
+      select: {
+        cityId: true,
+      }
+    });
+
+    if (!cityId) {
+      return res.status(404).json({ message: 'Id de ciudad no encontrado'})
+    }
+
+    res.json(cityId);
+  } catch (error) {
+    console.error('Error al obtener id de ciudad:', error);
+    res.status(500).json({ message: 'Error interno del servidor' });
+  }
+}
+
 exports.getCityNamesByLanguage = async (req, res) => {
   const { lang } = req.query;
 
@@ -14,7 +43,6 @@ exports.getCityNamesByLanguage = async (req, res) => {
       select: {
         cityId: true,
         name: true
-
       },
       orderBy: {
         name: 'asc'

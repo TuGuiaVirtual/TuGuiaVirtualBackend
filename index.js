@@ -10,7 +10,8 @@ const PORT = process.env.PORT || 5000;
 app.use(cors({
   origin: [
     'http://localhost:8100',
-    'https://tu-guia-virtual-frontend.vercel.app'
+    'https://tu-guia-virtual-frontend.vercel.app',
+    'https://www.yourvirtualguide.app'
   ],
   credentials: true
 }));

@@ -8,7 +8,10 @@ const PORT = process.env.PORT || 5000;
 
 // Middlewares
 app.use(cors({
-  origin: 'http://localhost:8100',
+  origin: [
+    'http://localhost:8100',
+    'https://tu-guia-virtual-frontend.vercel.app'
+  ],
   credentials: true
 }));
 app.use(express.json());

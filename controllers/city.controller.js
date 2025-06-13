@@ -157,7 +157,7 @@ exports.getImageCity = async (req, res) => {
         translations: {
           some: {
             name: {
-              equals: name,
+              contains: name,
               mode: 'insensitive',
             },
             language: lang,

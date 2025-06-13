@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -14,262 +8,263 @@ datasource db {
 }
 
 model User {
-  id        Int           @id @default(autoincrement())
-  email                   String   @unique
+  id                      Int                  @id @default(autoincrement())
+  email                   String               @unique
   password                String?
-  emailVerified           Boolean  @default(false)
   name                    String
-  phone                   String?
+  createdAt               DateTime             @default(now())
   profileImageUrl         String?
   imagePublicId           String?
   resetCode               String?
   resetCodeExpiry         DateTime?
-  createdAt DateTime      @default(now())
-
-  favoriteCities          FavoriteCity[]
-  favoriteRestaurants     FavoriteRestaurant[]
-  favoriteExperiences     FavoriteExperience[]
-  favoritePlaces          FavoritePlace[]
-  purchases               Purchase[]
-
-  touristPoints           Boolean @default(false)
-  gastronomicAlerts       Boolean @default(false)
-  experienceNotifications Boolean @default(false)
-  guideNews               Boolean @default(true)
-  emailNotifications      Boolean @default(true)
-
-  allowLocation           Boolean  @default(true)
-  autoPlayAudio           Boolean  @default(true)
-
+  phone                   String?
+  emailNotifications      Boolean              @default(true)
+  experienceNotifications Boolean              @default(false)
+  gastronomicAlerts       Boolean              @default(false)
+  guideNews               Boolean              @default(true)
+  touristPoints           Boolean              @default(false)
+  allowLocation           Boolean              @default(true)
+  autoPlayAudio           Boolean              @default(true)
   provider                String?
   providerId              String?
-
+  emailVerified           Boolean              @default(false)
+  favoriteCities          FavoriteCity[]
+  favoriteExperiences     FavoriteExperience[]
+  favoritePlaces          FavoritePlace[]
+  favoriteRestaurants     FavoriteRestaurant[]
+  purchases               Purchase[]
 }
 
 model City {
-  id                  Int                @id @default(autoincrement())
-  imageUrl            String
-  link                String?
-  views               Int                @default(0)
-  latitude            Float
-  longitude           Float
-  googleMapsUrl       String?
-  cityPrice           String?
-  createdAt           DateTime           @default(now())
-  updatedAt           DateTime           @updatedAt
-
-  places              Place[] 
-  restaurants         Restaurant[] 
-  experiences         Experience[]
-  purchaseCities      PurchaseCity[]
-
-  translations        CityTranslation[]
-
+  id             Int               @id @default(autoincrement())
+  imageUrl       String
+  link           String?
+  views          Int               @default(0)
+  latitude       Float
+  longitude      Float
+  googleMapsUrl  String?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  cityPrice      String?
+  translations   CityTranslation[]
+  experiences    Experience[]
   favoriteCities FavoriteCity[]
+  places         Place[]
+  purchaseCities PurchaseCity[]
+  restaurants    Restaurant[]
 }
 
 model CityTranslation {
-  id            Int     @id @default(autoincrement())
-  cityId        Int
-  city          City    @relation(fields: [cityId], references: [id], onDelete: Cascade)
-
-  language      String
-  audioUrl      String?
-  name          String
-  country       String?
-  infoCity      String?
-  description   String?
-  buttonText    String
+  id          Int     @id @default(autoincrement())
+  cityId      Int
+  language    String
+  name        String
+  description String?
+  buttonText  String
+  infoCity    String?
+  audioUrl    String?
+  country     String?
+  city        City    @relation(fields: [cityId], references: [id], onDelete: Cascade)
 
   @@unique([cityId, language])
 }
 
 model Experience {
-  id              Int                   @id @default(autoincrement())
-  cityId          Int
-  city            City                  @relation(fields: [cityId], references: [id], onDelete: Cascade)
-
-  imageUrl        String
-  link            String?
-  views           Int                   @default(0)
-  latitude        Float?
-  longitude       Float?
-  googleMapsUrl   String?
-  price           String?
-
-  createdAt       DateTime              @default(now())
-  updatedAt       DateTime              @updatedAt
-
-  translations    ExperienceTranslation[]
-
+  id                  Int                     @id @default(autoincrement())
+  cityId              Int
+  imageUrl            String
+  link                String?
+  views               Int                     @default(0)
+  latitude            Float?
+  longitude           Float?
+  googleMapsUrl       String?
+  createdAt           DateTime                @default(now())
+  updatedAt           DateTime                @updatedAt
+  price               String?
+  city                City                    @relation(fields: [cityId], references: [id], onDelete: Cascade)
+  translations        ExperienceTranslation[]
   favoriteExperiences FavoriteExperience[]
 }
 
 model ExperienceTranslation {
-  id            Int       @id @default(autoincrement())
-  experienceId  Int
-  experience    Experience @relation(fields: [experienceId], references: [id], onDelete: Cascade)
-
-  language      String
-  audioUrl      String?
-  name          String
-  cityName      String?
-  description   String?
-  firstInfo     String?
-  secondInfo    String?
-  thirdInfo     String?
-  info          String?
+  id           Int        @id @default(autoincrement())
+  experienceId Int
+  language     String
+  name         String
+  description  String?
+  info         String?
+  audioUrl     String?
+  firstInfo    String?
+  secondInfo   String?
+  thirdInfo    String?
+  cityName     String?
+  experience   Experience @relation(fields: [experienceId], references: [id], onDelete: Cascade)
 
   @@unique([experienceId, language])
 }
 
 model Restaurant {
-  id              Int                 @id @default(autoincrement())
-  cityId          Int
-  city            City                @relation(fields: [cityId], references: [id], onDelete: Cascade)
-
-  imageUrl        String
-  link            String?
-  views           Int                 @default(0)
-  latitude        Float?
-  longitude       Float?
-  googleMapsUrl   String?
-
-  createdAt       DateTime            @default(now())
-  updatedAt       DateTime            @updatedAt
-
-  translations    RestaurantTranslation[]
-
+  id                  Int                     @id @default(autoincrement())
+  cityId              Int
+  imageUrl            String
+  link                String?
+  views               Int                     @default(0)
+  latitude            Float?
+  longitude           Float?
+  googleMapsUrl       String?
+  createdAt           DateTime                @default(now())
+  updatedAt           DateTime                @updatedAt
   favoriteRestaurants FavoriteRestaurant[]
+  city                City                    @relation(fields: [cityId], references: [id], onDelete: Cascade)
+  translations        RestaurantTranslation[]
 }
 
 model RestaurantTranslation {
-  id            Int        @id @default(autoincrement())
-  restaurantId  Int
-  restaurant    Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
-
-  language      String
-  name          String
-  cityName      String?
-  description   String?
-  info          String
-  firstInfo     String
-  secondInfo    String
-  thirdInfo     String
-  audioUrl      String?
+  id           Int        @id @default(autoincrement())
+  restaurantId Int
+  language     String
+  name         String
+  description  String?
+  firstInfo    String
+  secondInfo   String
+  audioUrl     String?
+  thirdInfo    String
+  info         String
+  cityName     String?
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
 
   @@unique([restaurantId, language])
 }
 
 model Place {
-  id              Int                 @id @default(autoincrement())
-  cityId          Int
-  city            City                @relation(fields: [cityId], references: [id], onDelete: Cascade)
-
-  imageUrl        String
-  locationUrl     String
-  views           Int                 @default(0)
-  placePrice      String?
-  tourNumber      String?
-  accessLevel     AccessLevel         @default(FREE)
-
-
-  createdAt       DateTime            @default(now())
-  updatedAt       DateTime            @updatedAt
-
-  translations    PlaceTranslation[]
-  purchasePlaces  PurchasePlace[]
-
-
+  id             Int                @id @default(autoincrement())
+  cityId         Int
+  imageUrl       String
+  locationUrl    String
+  views          Int                @default(0)
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+  accessLevel    AccessLevel        @default(FREE)
+  placePrice     String?
+  tourNumber     String?
   favoritePlaces FavoritePlace[]
-}
-
-enum AccessLevel {
-  FREE          
-  REGISTERED
-  SUBSCRIPTION  
-  PAID          
+  city           City               @relation(fields: [cityId], references: [id], onDelete: Cascade)
+  translations   PlaceTranslation[]
+  purchasePlaces PurchasePlace[]
 }
 
 model PlaceTranslation {
-  id              Int       @id @default(autoincrement())
-  placeId         Int
-  place           Place     @relation(fields: [placeId], references: [id], onDelete: Cascade)
-
-  language        String
-  name            String
-  cityName        String?
-  description     String?
-  audioUrl        String?
-  reading         String?
-  vrUrl           String?
-  videoUrl        String?
+  id          Int     @id @default(autoincrement())
+  placeId     Int
+  language    String
+  name        String
+  description String?
+  audioUrl    String?
+  reading     String?
+  vrUrl       String?
+  videoUrl    String?
+  cityName    String?
+  place       Place   @relation(fields: [placeId], references: [id], onDelete: Cascade)
 
   @@unique([placeId, language])
 }
 
 model FavoriteCity {
-  id       Int    @id @default(autoincrement())
-  userId   Int
-  cityId   Int
-  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  city     City   @relation(fields: [cityId], references: [id], onDelete: Cascade)
+  id     Int  @id @default(autoincrement())
+  userId Int
+  cityId Int
+  city   City @relation(fields: [cityId], references: [id], onDelete: Cascade)
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([userId, cityId]) // Un usuario no puede añadir la misma ciudad más de una vez
+  @@unique([userId, cityId])
 }
 
 model FavoriteRestaurant {
-  id           Int         @id @default(autoincrement())
+  id           Int        @id @default(autoincrement())
   userId       Int
   restaurantId Int
-  user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  restaurant   Restaurant  @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, restaurantId])
 }
 
 model FavoriteExperience {
-  id            Int         @id @default(autoincrement())
-  userId        Int
-  experienceId  Int
-  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  experience    Experience  @relation(fields: [experienceId], references: [id], onDelete: Cascade)
+  id           Int        @id @default(autoincrement())
+  userId       Int
+  experienceId Int
+  experience   Experience @relation(fields: [experienceId], references: [id], onDelete: Cascade)
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, experienceId])
 }
 
 model FavoritePlace {
-  id       Int    @id @default(autoincrement())
-  userId   Int
-  placeId  Int
-  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  place    Place  @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  id      Int   @id @default(autoincrement())
+  userId  Int
+  placeId Int
+  place   Place @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  user    User  @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, placeId])
 }
 
 model Purchase {
-  id             Int         @id @default(autoincrement())
-  userId         Int
-  user           User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  type           PurchaseType
-  status         PurchaseStatus
-  platform       Platform
-  paymentMethod  String?
-  externalId     String?
-
-  amount         Float
-  currency       String
-
-  createdAt      DateTime    @default(now())
-  expiresAt      DateTime?
-
-  cities         PurchaseCity[]
-  places         PurchasePlace[]
-  bundleName     String?
+  id            Int             @id @default(autoincrement())
+  userId        Int
+  type          PurchaseType
+  status        PurchaseStatus
+  platform      Platform
+  paymentMethod String?
+  externalId    String?
+  amount        Float
+  currency      String
+  createdAt     DateTime        @default(now())
+  expiresAt     DateTime?
+  bundleName    String?
+  user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  cities        PurchaseCity[]
+  places        PurchasePlace[]
 
   @@index([userId])
+}
+
+model PurchaseCity {
+  id         Int      @id @default(autoincrement())
+  purchaseId Int
+  cityId     Int
+  city       City     @relation(fields: [cityId], references: [id], onDelete: Cascade)
+  purchase   Purchase @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
+
+  @@unique([purchaseId, cityId])
+}
+
+model PurchasePlace {
+  id         Int      @id @default(autoincrement())
+  purchaseId Int
+  placeId    Int
+  place      Place    @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  purchase   Purchase @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
+
+  @@unique([purchaseId, placeId])
+}
+
+model StaticDocument {
+  id        Int      @id @default(autoincrement())
+  key       String
+  language  String
+  url       String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([key, language])
+}
+
+enum AccessLevel {
+  FREE
+  SUBSCRIPTION
+  PAID
+  REGISTERED
 }
 
 enum PurchaseType {
@@ -291,37 +286,3 @@ enum Platform {
   ANDROID
   IOS
 }
-
-model PurchaseCity {
-  id         Int      @id @default(autoincrement())
-  purchaseId Int
-  cityId     Int
-
-  purchase   Purchase @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
-  city       City     @relation(fields: [cityId], references: [id], onDelete: Cascade)
-
-  @@unique([purchaseId, cityId])
-}
-
-model PurchasePlace {
-  id         Int      @id @default(autoincrement())
-  purchaseId Int
-  placeId    Int
-
-  purchase   Purchase @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
-  place      Place    @relation(fields: [placeId], references: [id], onDelete: Cascade)
-
-  @@unique([purchaseId, placeId])
-}
-
-model StaticDocument {
-  id        Int      @id @default(autoincrement())
-  key       String
-  language  String
-  url       String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([key, language])
-}
-

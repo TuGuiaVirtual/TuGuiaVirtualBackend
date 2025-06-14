@@ -312,7 +312,7 @@ exports.getCitiesNear = async (req, res) => {
         id: city.id,
         cityId: city.id,
         name: t.name || null,
-        country: t.country || null,
+        cityName: t.country || null,
         description: t.description || null,
         buttonText: t.buttonText || null,
         cityPrice: city.cityPrice || null,

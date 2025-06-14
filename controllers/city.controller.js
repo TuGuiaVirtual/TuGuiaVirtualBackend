@@ -262,7 +262,6 @@ exports.getCitiesNear = async (req, res) => {
   }
 
   try {
-    // 🌍 Filtrar las ciudades cercanas usando Haversine
     const nearbyCities = await prisma.$queryRawUnsafe(`
       SELECT *
       FROM "City"
@@ -278,10 +277,9 @@ exports.getCitiesNear = async (req, res) => {
     `);
 
     if (nearbyCities.length === 0) {
-      return res.json([]); // No hay ciudades cercanas
+      return res.json([]);
     }
 
-    // 🔍 Obtener las traducciones de las ciudades
     const cityIds = nearbyCities.map(c => c.id);
 
     const citiesWithTranslations = await prisma.city.findMany({
@@ -304,7 +302,6 @@ exports.getCitiesNear = async (req, res) => {
       }
     });
 
-    // 🔥 Construir la respuesta
     const response = citiesWithTranslations.map(city => {
       const t = city.translations[0] || {};
 

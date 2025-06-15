@@ -158,7 +158,7 @@ exports.getTopRestaurantsByCity = async (req, res) => {
   const color = 'blue';
 
   if (!lang) {
-    return res.status(400).json({ message: 'Faltan parámetros requeridos: cityId o lang' });
+    return res.status(400).json({ message: 'Faltan parámetros requeridos: lang' });
   }
 
   try {
@@ -166,65 +166,63 @@ exports.getTopRestaurantsByCity = async (req, res) => {
       select: { id: true }
     });
 
-    const results = await Promise.all(
-      cities.map(async city => {
-        const restaurants = await prisma.restaurant.findFirst({
-          where: {
-            cityId: city.id,
-            translations: { some: { language: lang } }
-          },
-          orderBy: { views: 'desc' },
-          select: {
-            id: true,
-            imageUrl: true,
-            link: true,
-            googleMapsUrl: true,
-            views: true,
-            cityId: true,
-            translations: {
-              where: { language: lang },
-              select: {
-                name: true,
-                cityName: true,
-                description: true,
-                audioUrl: true,
-                secondInfo: true,
-                thirdInfo: true,
-                firstInfo: true
-              }
+    const results = [];
+
+    for (const city of cities) {
+      const restaurant = await prisma.restaurant.findFirst({
+        where: {
+          cityId: city.id,
+          translations: { some: { language: lang } }
+        },
+        orderBy: { views: 'desc' },
+        select: {
+          id: true,
+          imageUrl: true,
+          link: true,
+          googleMapsUrl: true,
+          views: true,
+          cityId: true,
+          translations: {
+            where: { language: lang },
+            select: {
+              name: true,
+              cityName: true,
+              description: true,
+              audioUrl: true,
+              secondInfo: true,
+              thirdInfo: true,
+              firstInfo: true
             }
           }
-        });
-
-        if (restaurants && restaurants.translations.length > 0) {
-          return {
-            id: restaurants.id,
-            cityId: restaurants.cityId,
-            imageUrl: restaurants.imageUrl,
-            link: restaurants.link,
-            locationUrl: restaurants.googleMapsUrl,
-            views: restaurants.views,
-            name: restaurants.translations[0].name,
-            cityName: restaurants.translations[0].cityName,
-            description: restaurants.translations[0].description,
-            audioUrl: restaurants.translations[0].audioUrl,
-            secondInfo: restaurants.translations[0].secondInfo,
-            thirdInfo: restaurants.translations[0].thirdInfo,
-            firstInfo: restaurants.translations[0].firstInfo,
-            color
-          };
-        } else {
-          return null;
         }
-      })
-    );
+      });
 
-    res.json(results.filter(x => x !== null));
+      if (restaurant && restaurant.translations.length > 0) {
+        results.push({
+          id: restaurant.id,
+          cityId: restaurant.cityId,
+          imageUrl: restaurant.imageUrl,
+          link: restaurant.link,
+          locationUrl: restaurant.googleMapsUrl,
+          views: restaurant.views,
+          name: restaurant.translations[0].name,
+          cityName: restaurant.translations[0].cityName,
+          description: restaurant.translations[0].description,
+          audioUrl: restaurant.translations[0].audioUrl,
+          secondInfo: restaurant.translations[0].secondInfo,
+          thirdInfo: restaurant.translations[0].thirdInfo,
+          firstInfo: restaurant.translations[0].firstInfo,
+          color
+        });
+      }
+    }
+
+    res.json(results);
   } catch (error) {
-    console.error('Error al obtener las experiencias más visitados por ciudad:', error);
+    console.error('Error al obtener los restaurantes más visitados por ciudad:', error);
     res.status(500).json({ message: 'Error interno del servidor' });
   }
-}
+};
 
 exports.getRestaurantsByIds = async (req, res) => {
   const { restaurantIds, lang } = req.body;

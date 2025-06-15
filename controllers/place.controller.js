@@ -197,103 +197,104 @@ exports.getTopPlaceByCity = async (req, res) => {
       isSubscribed = purchases.some(p => p.type === 'SUBSCRIPTION' && p.expiresAt > new Date());
     }
 
-    const results = await Promise.all(
-      cities.map(async city => {
-        const place = await prisma.place.findFirst({
-          where: {
-            cityId: city.id,
-            translations: { some: { language: lang } }
-          },
-          orderBy: { views: 'desc' },
-          select: {
-            id: true,
-            cityId: true,
-            imageUrl: true,
-            locationUrl: true,
-            views: true,
-            accessLevel: true,
-            translations: {
-              where: { language: lang },
-              select: {
-                name: true,
-                cityName: true,
-                description: true,
-                audioUrl: true,
-                reading: true,
-                vrUrl: true,
-                videoUrl: true
-              }
+    const results = [];
+
+    for (const city of cities) {
+      const place = await prisma.place.findFirst({
+        where: {
+          cityId: city.id,
+          translations: { some: { language: lang } }
+        },
+        orderBy: { views: 'desc' },
+        select: {
+          id: true,
+          cityId: true,
+          imageUrl: true,
+          locationUrl: true,
+          views: true,
+          accessLevel: true,
+          translations: {
+            where: { language: lang },
+            select: {
+              name: true,
+              cityName: true,
+              description: true,
+              audioUrl: true,
+              reading: true,
+              vrUrl: true,
+              videoUrl: true
             }
           }
-        });
+        }
+      });
 
-        if (!place || place.translations.length === 0) return null;
+      if (!place || place.translations.length === 0) continue;
 
-        const translation = place.translations[0];
+      const translation = place.translations[0];
 
-        let hasAccess = false;
-        let cityAccess = false;
+      let hasAccess = false;
+      let cityAccess = false;
 
-        if (userId) {
-          cityAccess = purchases.some(p =>
-            ['CITY', 'BUNDLE'].includes(p.type) &&
-            p.cities.some(c => c.cityId === city.id)
+      if (userId) {
+        cityAccess = purchases.some(p =>
+          ['CITY', 'BUNDLE'].includes(p.type) &&
+          p.cities.some(c => c.cityId === city.id)
+        );
+      }
+
+      switch (place.accessLevel) {
+        case 'FREE':
+          hasAccess = true;
+          break;
+        case 'REGISTERED':
+          hasAccess = !!userId;
+          break;
+        case 'SUBSCRIPTION':
+          hasAccess = isSubscribed;
+          break;
+        case 'PAID':
+          const hasPlace = purchases.some(p =>
+            p.type === 'PLACE' &&
+            p.places.some(pp => pp.placeId === place.id)
           );
-        }
+          hasAccess = isSubscribed || cityAccess || hasPlace;
+          break;
+      }
 
+      const color =
+        place.accessLevel === 'REGISTERED' ? 'yellow' :
+        ['SUBSCRIPTION', 'PAID'].includes(place.accessLevel) ? 'red' : 'blue';
+
+      const restrictedValue = () => {
         switch (place.accessLevel) {
-          case 'FREE':
-            hasAccess = true;
-            break;
           case 'REGISTERED':
-            hasAccess = !!userId;
-            break;
+            return 'https://res.cloudinary.com/duw2w8izn/video/upload/v1747238085/con_registro_gk13yd.mp4';
           case 'SUBSCRIPTION':
-            hasAccess = isSubscribed;
-            break;
           case 'PAID':
-            const hasPlace = purchases.some(p =>
-              p.type === 'PLACE' &&
-              p.places.some(pp => pp.placeId === place.id)
-            );
-            hasAccess = isSubscribed || cityAccess || hasPlace;
-            break;
+            return 'https://res.cloudinary.com/duw2w8izn/video/upload/v1747238085/con_pago_wocym7.mp4';
+          default:
+            return null;
         }
+      };
 
-        const color =
-          place.accessLevel === 'REGISTERED' ? 'yellow' : ['SUBSCRIPTION', 'PAID'].includes(place.accessLevel) ? 'red' : 'blue';
+      results.push({
+        id: place.id,
+        cityId: place.cityId,
+        imageUrl: place.imageUrl,
+        locationUrl: place.locationUrl,
+        views: place.views,
+        name: translation.name,
+        cityName: translation.cityName,
+        description: translation.description,
+        audioUrl: hasAccess ? translation.audioUrl : restrictedValue(),
+        reading: hasAccess ? translation.reading : restrictedValue(),
+        vrUrl: hasAccess ? translation.vrUrl : restrictedValue(),
+        videoUrl: hasAccess ? translation.videoUrl : restrictedValue(),
+        color
+      });
+    }
 
-        const restrictedValue = () => {
-          switch (place.accessLevel) {
-            case 'REGISTERED':
-              return 'https://res.cloudinary.com/duw2w8izn/video/upload/v1747238085/con_registro_gk13yd.mp4';
-            case 'SUBSCRIPTION':
-            case 'PAID':
-              return 'https://res.cloudinary.com/duw2w8izn/video/upload/v1747238085/con_pago_wocym7.mp4';
-            default:
-              return null;
-          }
-        };
-
-        return {
-          id: place.id,
-          cityId: place.cityId,
-          imageUrl: place.imageUrl,
-          locationUrl: place.locationUrl,
-          views: place.views,
-          name: translation.name,
-          cityName: translation.cityName,
-          description: translation.description,
-          audioUrl: hasAccess ? translation.audioUrl : restrictedValue(),
-          reading: hasAccess ? translation.reading : restrictedValue(),
-          vrUrl: hasAccess ? translation.vrUrl : restrictedValue(),
-          videoUrl: hasAccess ? translation.videoUrl : restrictedValue(),
-          color
-        };
-      })
-    );
-
-    res.json(results.filter(r => r !== null));
+    res.json(results);
   } catch (error) {
     console.error('Error al obtener los lugares más visitados por ciudad:', error);
     res.status(500).json({ message: 'Error interno del servidor' });
@@ -602,7 +603,8 @@ exports.getPlaceNear = async (req, res) => {
           id: cityId,
           name: cityTranslation
         },
-        cityPrice: place.cityPrice,
+        cityPrice: place.city?.cityPrice || null,
+        placePrice: place.placePrice || null,
         imageUrl: place.imageUrl,
         locationUrl: place.locationUrl,
         views: place.views,

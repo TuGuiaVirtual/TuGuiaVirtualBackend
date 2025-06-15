@@ -204,66 +204,65 @@ exports.getTopExperiencesByCity = async (req, res) => {
       select: { id: true }
     });
 
-    const results = await Promise.all(
-      cities.map(async city => {
-        const experience = await prisma.experience.findFirst({
-          where: {
-            cityId: city.id,
-            translations: { some: { language: lang } }
-          },
-          orderBy: { views: 'desc' },
-          select: {
-            id: true,
-            imageUrl: true,
-            link: true,
-            googleMapsUrl: true,
-            views: true,
-            cityId: true,
-            price: true,
-            translations: {
-              where: { language: lang },
-              select: {
-                name: true,
-                cityName: true,
-                description: true,
-                audioUrl: true,
-                secondInfo: true,
-                thirdInfo: true,
-                firstInfo: true
-              }
+    const results = [];
+
+    for (const city of cities) {
+      const experience = await prisma.experience.findFirst({
+        where: {
+          cityId: city.id,
+          translations: { some: { language: lang } }
+        },
+        orderBy: { views: 'desc' },
+        select: {
+          id: true,
+          imageUrl: true,
+          link: true,
+          googleMapsUrl: true,
+          views: true,
+          cityId: true,
+          price: true,
+          translations: {
+            where: { language: lang },
+            select: {
+              name: true,
+              cityName: true,
+              description: true,
+              audioUrl: true,
+              secondInfo: true,
+              thirdInfo: true,
+              firstInfo: true
             }
           }
-        });
-        if (experience && experience.translations.length > 0) {
-          return {
-            id: experience.id,
-            cityId: experience.cityId,
-            imageUrl: experience.imageUrl,
-            link: experience.link,
-            locationUrl: experience.googleMapsUrl,
-            views: experience.views,
-            name: experience.translations[0].name,
-            cityName: experience.translations[0].cityName,
-            description: experience.translations[0].description,
-            audioUrl: experience.translations[0].audioUrl,
-            secondInfo: experience.translations[0].secondInfo,
-            thirdInfo: experience.translations[0].thirdInfo,
-            firstInfo: experience.translations[0].firstInfo,
-            price: experience.price,
-            color
-          };
-        } else {
-          return null;
         }
-      })
-    );
+      });
 
-    res.json(results.filter(x => x !== null));
+      if (experience && experience.translations.length > 0) {
+        results.push({
+          id: experience.id,
+          cityId: experience.cityId,
+          imageUrl: experience.imageUrl,
+          link: experience.link,
+          locationUrl: experience.googleMapsUrl,
+          views: experience.views,
+          name: experience.translations[0].name,
+          cityName: experience.translations[0].cityName,
+          description: experience.translations[0].description,
+          audioUrl: experience.translations[0].audioUrl,
+          secondInfo: experience.translations[0].secondInfo,
+          thirdInfo: experience.translations[0].thirdInfo,
+          firstInfo: experience.translations[0].firstInfo,
+          price: experience.price,
+          color
+        });
+      }
+    }
+
+    res.json(results);
   } catch (error) {
     console.error('Error al obtener las experiencias más visitados por ciudad:', error);
     res.status(500).json({ message: 'Error interno del servidor' });
   }
-}
+};
 
 exports.getExperiencesByIds = async (req, res) => {
   const { experiencesIds, lang } = req.body;

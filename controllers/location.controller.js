@@ -20,8 +20,6 @@ exports.getCityFromCoordinates = async (req, res) => {
       }
     });
 
-    console.log('devuelve: ' ,response.data);
-
     res.json(response.data);
   } catch (error) {
     console.error('Error al obtener la ciudad:', error.message);

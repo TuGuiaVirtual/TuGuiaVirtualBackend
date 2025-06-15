@@ -62,87 +62,87 @@ exports.getCityNamesByLanguage = async (req, res) => {
 exports.getTopVisitedCities = async (req, res) => {
   const { lang, number } = req.query;
   const numberParsed = parseInt(number);
-  
 
-    if (!lang || isNaN(numberParsed)) {
-        return res.status(400).json({message: 'Faltan parámetros'})
-    }
+  if (!lang || isNaN(numberParsed)) {
+    return res.status(400).json({ message: 'Faltan parámetros' });
+  }
 
-    try {
-      const cities = await prisma.city.findMany({
-        orderBy: { views: 'desc' },
-        take: numberParsed,
-        select: {
-          id: true,
-          imageUrl: true,
-          link: true,
-          latitude: true,
-          longitude: true,
-          googleMapsUrl: true,
-          translations: {
-            where: { language: lang },
-            select: {
-              name: true,
-              country: true,
-              description: true,
-              buttonText: true,
-              infoCity: true,
-              audioUrl: true
-            }
+  try {
+    const cities = await prisma.city.findMany({
+      orderBy: { views: 'desc' },
+      take: numberParsed,
+      select: {
+        id: true,
+        imageUrl: true,
+        link: true,
+        latitude: true,
+        longitude: true,
+        googleMapsUrl: true,
+        translations: {
+          where: { language: lang },
+          select: {
+            name: true,
+            country: true,
+            description: true,
+            buttonText: true,
+            infoCity: true,
+            audioUrl: true
           }
         }
+      }
+    });
+
+    const result = [];
+
+    for (const city of cities) {
+      const placesCount = await prisma.placeTranslation.count({
+        where: {
+          language: lang,
+          place: { cityId: city.id }
+        }
       });
-  
-      const result = await Promise.all(
-        cities.map(async city => {
-          const [placesCount, restaurantsCount, experiencesCount] = await Promise.all([
-            prisma.placeTranslation.count({
-              where: {
-                language: lang,
-                place: { cityId: city.id }
-              }
-            }),
-            prisma.restaurantTranslation.count({
-              where: {
-                language: lang,
-                restaurant: { cityId: city.id }
-              }
-            }),
-            prisma.experienceTranslation.count({
-              where: {
-                language: lang,
-                experience: { cityId: city.id }
-              }
-            })
-          ]);
-  
-          return {
-            cityId: city.id,
-            id: city.id,
-            imageUrl: city.imageUrl,
-            link: city.link,
-            latitude: city.latitude,
-            longitude: city.longitude,
-            googleMapsUrl: city.googleMapsUrl,
-            name: city.translations[0]?.name || null,
-            cityName: city.translations[0]?.country || null,
-            description: city.translations[0]?.description || null,
-            buttonText: city.translations[0]?.buttonText || null,
-            infoCity: city.translations[0]?.infoCity || null,
-            audioUrl: city.translations[0]?.audioUrl || null,
-            placeCount: placesCount,
-            restaurantCount: restaurantsCount,
-            experienceCount: experiencesCount
-          };
-        })
-      );
-      
-        res.json(result);
-    } catch (error) {
-        console.error('Error al obtener ciudades populares:', error);
-        res.status(500).json({ message: 'Error interno del servidor' });
+
+      const restaurantsCount = await prisma.restaurantTranslation.count({
+        where: {
+          language: lang,
+          restaurant: { cityId: city.id }
+        }
+      });
+
+      const experiencesCount = await prisma.experienceTranslation.count({
+        where: {
+          language: lang,
+          experience: { cityId: city.id }
+        }
+      });
+
+      result.push({
+        cityId: city.id,
+        id: city.id,
+        imageUrl: city.imageUrl,
+        link: city.link,
+        latitude: city.latitude,
+        longitude: city.longitude,
+        googleMapsUrl: city.googleMapsUrl,
+        name: city.translations[0]?.name || null,
+        cityName: city.translations[0]?.country || null,
+        description: city.translations[0]?.description || null,
+        buttonText: city.translations[0]?.buttonText || null,
+        infoCity: city.translations[0]?.infoCity || null,
+        audioUrl: city.translations[0]?.audioUrl || null,
+        placeCount: placesCount,
+        restaurantCount: restaurantsCount,
+        experienceCount: experiencesCount
+      });
     }
+
+    res.json(result);
+  } catch (error) {
+    console.error('Error al obtener ciudades populares:', error);
+    res.status(500).json({ message: 'Error interno del servidor' });
+  }
 };
+
 
 exports.getImageCity = async (req, res) => {
   const { lang, name } = req.query;

@@ -205,7 +205,7 @@ exports.getCitiesByIds = async (req, res) => {
             audioUrl: true,
             infoCity: true,
             description: true,
-            buttonText: true
+            buttonText: true,
           }
         }
       }
@@ -223,6 +223,8 @@ exports.getCitiesByIds = async (req, res) => {
         latitude: city.latitude,
         longitude: city.longitude,
         googleMapsUrl: city.googleMapsUrl || null,
+        cityPrice: city.cityPrice || null,
+        placePrice: null,
         name: t.name || null,
         cityName: t.country || null,
         audioUrl: t.audioUrl || null,

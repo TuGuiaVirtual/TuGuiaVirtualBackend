@@ -349,7 +349,7 @@ exports.getPlacesByIds = async (req, res) => {
             audioUrl: true,
             reading: true,
             vrUrl: true,
-            videoUrl: true
+            videoUrl: true,
           }
         }
       }
@@ -429,7 +429,8 @@ exports.getPlacesByIds = async (req, res) => {
           id: cityId,
           name: cityTranslation
         },
-        cityPrice: place.cityPrice,
+        cityPrice: place.city?.cityPrice || null,
+        placePrice: place.placePrice || null,
         imageUrl: place.imageUrl,
         locationUrl: place.locationUrl,
         views: place.views,

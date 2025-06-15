@@ -15,9 +15,12 @@ exports.getCityFromCoordinates = async (req, res) => {
         format: 'json'
       },
       headers: {
-        'User-Agent': 'TuGuiaVirtual/1.0 (contacto@tuguia.app)'
+        'User-Agent': 'TuGuiaVirtual/1.0 (contacto@tuguia.app)',
+        'Accept-Language': 'en'
       }
     });
+
+    console.log('devuelve: ' ,response.data);
 
     res.json(response.data);
   } catch (error) {

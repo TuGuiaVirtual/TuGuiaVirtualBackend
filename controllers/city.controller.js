@@ -132,7 +132,8 @@ exports.getTopVisitedCities = async (req, res) => {
         audioUrl: city.translations[0]?.audioUrl || null,
         placeCount: placesCount,
         restaurantCount: restaurantsCount,
-        experienceCount: experiencesCount
+        experienceCount: experiencesCount,
+        color: 'blue'
       });
     }
 
@@ -182,7 +183,6 @@ exports.getImageCity = async (req, res) => {
 
 exports.getCitiesByIds = async (req, res) => {
   const { cityIds, lang } = req.body;
-  const color = 'blue';
 
   if (!Array.isArray(cityIds) || cityIds.length === 0) {
     return res.status(400).json({ message: 'La lista de IDs es inválida o está vacía' });
@@ -213,6 +213,7 @@ exports.getCitiesByIds = async (req, res) => {
 
     const response = cities.map(city => {
       const t = city.translations[0] || {};
+      const color = 'blue';
 
       return {
         id: city.id,
@@ -231,7 +232,7 @@ exports.getCitiesByIds = async (req, res) => {
         infoCity: t.infoCity || null,
         description: t.description || null,
         buttonText: t.buttonText || null,
-        color
+        color: 'blue'
       };
     });
 
@@ -319,7 +320,8 @@ exports.getCitiesNear = async (req, res) => {
         latitude: city.latitude || null,
         longitude: city.longitude || null,
         googleMapsUrl: city.googleMapsUrl || null,
-        views: city.views || 0
+        views: city.views || 0,
+        color: 'blue'
       };
     });
 

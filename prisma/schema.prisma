@@ -46,6 +46,7 @@ model City {
   createdAt      DateTime          @default(now())
   updatedAt      DateTime          @updatedAt
   cityPrice      String?
+  activated      Boolean           @default(false)
   translations   CityTranslation[]
   experiences    Experience[]
   favoriteCities FavoriteCity[]

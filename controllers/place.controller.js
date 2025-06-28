@@ -26,7 +26,7 @@ exports.getPlaces = async (req, res) => {
   try {
     const places = await prisma.place.findMany({
       where: { cityId },
-      orderBy: { id: 'asc' },
+      orderBy: { tourNumber: 'asc' },
       select: {
         id: true,
         cityId: true,
@@ -205,7 +205,7 @@ exports.getTopPlaceByCity = async (req, res) => {
           cityId: city.id,
           translations: { some: { language: lang } }
         },
-        orderBy: { views: 'desc' },
+        orderBy: { tourNumber: 'desc' },
         select: {
           id: true,
           cityId: true,
@@ -476,7 +476,6 @@ exports.getPlaceNear = async (req, res) => {
   }
 
   try {
-    // 🔥 Filtrar las cities cercanas usando Haversine
     const nearbyCities = await prisma.$queryRawUnsafe(`
       SELECT id
       FROM "City"
@@ -494,10 +493,9 @@ exports.getPlaceNear = async (req, res) => {
     const nearbyCityIds = nearbyCities.map(c => c.id);
 
     if (nearbyCityIds.length === 0) {
-      return res.json([]); // No hay ciudades cercanas
+      return res.json([]);
     }
 
-    // 🔥 Buscar los lugares de esas ciudades con traducciones
     const places = await prisma.place.findMany({
       where: {
         cityId: { in: nearbyCityIds },

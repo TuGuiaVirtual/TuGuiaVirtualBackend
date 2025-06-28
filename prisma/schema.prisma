@@ -148,6 +148,7 @@ model Place {
   accessLevel    AccessLevel        @default(FREE)
   placePrice     String?
   tourNumber     String?
+  placeName      String?
   favoritePlaces FavoritePlace[]
   city           City               @relation(fields: [cityId], references: [id], onDelete: Cascade)
   translations   PlaceTranslation[]

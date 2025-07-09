@@ -46,7 +46,7 @@ model City {
   createdAt      DateTime          @default(now())
   updatedAt      DateTime          @updatedAt
   cityPrice      String?
-  activated      Boolean           @default(false)
+  activated      Boolean?
   translations   CityTranslation[]
   experiences    Experience[]
   favoriteCities FavoriteCity[]
@@ -147,7 +147,7 @@ model Place {
   updatedAt      DateTime           @updatedAt
   accessLevel    AccessLevel        @default(FREE)
   placePrice     String?
-  tourNumber     String?
+  tourNumber     Int?
   placeName      String?
   favoritePlaces FavoritePlace[]
   city           City               @relation(fields: [cityId], references: [id], onDelete: Cascade)

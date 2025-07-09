@@ -120,10 +120,10 @@ exports.getPlaces = async (req, res) => {
       const restrictedValue = () => {
         switch (place.accessLevel) {
           case 'REGISTERED':
-            return 'https://res.cloudinary.com/duw2w8izn/video/upload/v1747238085/con_registro_gk13yd.mp4';
+            return 'https://res.cloudinary.com/duw2w8izn/video/upload/v1752055076/Con_registro_zkrfmx.mp3';
           case 'SUBSCRIPTION':
           case 'PAID':
-            return 'https://res.cloudinary.com/duw2w8izn/video/upload/v1747238085/con_pago_wocym7.mp4';
+            return 'https://res.cloudinary.com/duw2w8izn/video/upload/v1752055192/Con_pago_kpygfr.mp3';
           default:
             return null;
         }

@@ -69,6 +69,7 @@ exports.getTopVisitedCities = async (req, res) => {
 
   try {
     const cities = await prisma.city.findMany({
+      where: { activated: true },
       orderBy: { views: 'desc' },
       take: numberParsed,
       select: {
@@ -192,6 +193,7 @@ exports.getCitiesByIds = async (req, res) => {
     const cities = await prisma.city.findMany({
       where: {
         id: { in: cityIds },
+        activated: true,
         translations: {
           some: { language: lang }
         }
@@ -288,6 +290,7 @@ exports.getCitiesNear = async (req, res) => {
     const citiesWithTranslations = await prisma.city.findMany({
       where: {
         id: { in: cityIds },
+        activated: true,
         translations: {
           some: { language: lang }
         }

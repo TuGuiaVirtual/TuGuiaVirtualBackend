@@ -12,6 +12,7 @@ exports.getTopVisitedGastronomy = async (req, res) => {
 
   try {
     const topCities = await prisma.city.findMany({
+      where: { activated: true },
       orderBy: { views: 'desc' },
       take: number,
       select: { id: true }

@@ -1,6 +1,7 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const jwt = require('jsonwebtoken');
+const axios = require('axios');
 
 exports.getProfile = async (req, res) => {
   try {
@@ -149,12 +150,15 @@ exports.getDoc = async (req, res) => {
       return res.status(404).json({ message: 'Documento no encontrado' });
     }
 
-    res.json({ url: doc.url });
+    const response = await axios.get(doc.url);
+
+    res.json(response.data);
   } catch (error) {
     console.error('Error al obtener el documento:', error);
     res.status(500).json({ message: 'Error interno del servidor' });
   }
 };
+
 
 exports.verifyEmail = async (req, res) => {
   const { token } = req.query;

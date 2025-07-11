@@ -310,7 +310,6 @@ exports.getRestaurantsNear = async (req, res) => {
 
   let userId = null;
 
-  // 🔒 Autenticación (opcional)
   const authHeader = req.headers.authorization;
   if (authHeader && authHeader.startsWith('Bearer ')) {
     const token = authHeader.split(' ')[1];
@@ -323,7 +322,6 @@ exports.getRestaurantsNear = async (req, res) => {
   }
 
   try {
-    // 🔥 Filtrar las cities cercanas usando Haversine
     const nearbyCities = await prisma.$queryRawUnsafe(`
       SELECT id
       FROM "City"
@@ -341,16 +339,13 @@ exports.getRestaurantsNear = async (req, res) => {
     const nearbyCityIds = nearbyCities.map(c => c.id);
 
     if (nearbyCityIds.length === 0) {
-      return res.json([]); // No hay ciudades cercanas
+      return res.json([]);
     }
 
-    // 🔍 Buscar los restaurantes de esas ciudades con traducciones
     const restaurants = await prisma.restaurant.findMany({
       where: {
         cityId: { in: nearbyCityIds },
-        translations: {
-          some: { language: lang }
-        }
+        translations: { some: { language: lang } }
       },
       include: {
         city: {
@@ -379,7 +374,6 @@ exports.getRestaurantsNear = async (req, res) => {
       }
     });
 
-    // 🔥 Construir la respuesta
     const response = restaurants.map(restaurant => {
       const t = restaurant.translations[0] || {};
       const cityTranslation = restaurant.city?.translations?.[0]?.name || null;

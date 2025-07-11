@@ -51,7 +51,10 @@ exports.getFavorites = async (req, res) => {
   
   try {
     const favoriteCities = await prisma.favoriteCity.findMany({
-      where: { userId },
+      where: { 
+        userId,
+        city: { activated: true }
+      },
       select: { cityId: true }
     });
   

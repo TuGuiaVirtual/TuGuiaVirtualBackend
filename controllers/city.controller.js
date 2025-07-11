@@ -39,7 +39,12 @@ exports.getCityNamesByLanguage = async (req, res) => {
 
   try {
     const cities = await prisma.cityTranslation.findMany({
-      where: { language: lang },
+      where: { 
+        language: lang,
+        city: {
+          activated: true
+        }
+       },
       select: {
         cityId: true,
         name: true
